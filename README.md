@@ -69,6 +69,14 @@ block attributes cleanly to a specific defense. (8 scenarios in v0.2: 7 attacks 
 A stack only looks good with **low ASR *and* high utility** — trivially refusing
 everything scores 0% ASR but also 0% utility.
 
+**Interpreting off vs. on.** ASR with guardrails **off** measures a model's
+*intrinsic* susceptibility — does it resist the embedded attack on its own?
+ASR with guardrails **on** measures *residual* risk after deployment controls.
+Because the v0.2 controls are enforced deterministically, residual ASR is near
+zero across models, so models are differentiated mainly by intrinsic
+susceptibility and over-refusal. (Controls whose effectiveness *depends* on the
+agent's own choices are a planned extension.)
+
 ---
 
 ## How it works
@@ -116,6 +124,18 @@ finagent-redteam --model Qwen/Qwen3-8B --base-url http://localhost:8000/v1
 # Ollama OpenAI shim
 finagent-redteam --model llama3.1 --base-url http://localhost:11434/v1 --json results.json
 ```
+
+Run the **multi-model leaderboard** (several models, repeated trials):
+
+```bash
+# examples/models.example.json lists the models + endpoints to compare
+finagent-redteam --models-config examples/models.example.json --trials 5 --temperature 0.7 \
+                 --json leaderboard.json
+```
+
+This prints a ranked leaderboard plus a per-threat-category attack-success
+matrix; see [examples/sample_leaderboard.md](examples/sample_leaderboard.md) for
+the output shape.
 
 ### Illustrative scorecard
 

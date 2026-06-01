@@ -1,0 +1,7 @@
+{
+  "models": [
+    { "name": "gpt-4o-mini", "api_key_env": "OPENAI_API_KEY" },
+    { "name": "Qwen/Qwen3-8B", "base_url": "http://localhost:8000/v1" },
+    { "name": "llama3.1", "base_url": "http://localhost:11434/v1" }
+  ]
+}
