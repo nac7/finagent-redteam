@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "FinAgent Red-Team: A benchmark for regulatory-control bypass in financial AI agents"
+authors:
+  - family-names: Lele
+    given-names: Nachiket
+version: 0.1.0
+date-released: 2026-05-31
+license: MIT
+keywords:
+  - ai-agents
+  - agent-security
+  - prompt-injection
+  - financial-compliance
+  - benchmark

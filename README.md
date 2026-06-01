@@ -1,0 +1,155 @@
+# FinAgent Red-Team
+
+**A red-team benchmark for AI agents that handle money — focused on *regulatory-control bypass*, not just generic misbehavior.**
+
+Can a crafted invoice, vendor email, or chat message trick an LLM agent into
+**evading sanctions screening, structuring payments under a reporting threshold,
+defeating dual-approval, or wiring funds to an unapproved payee** — and do the
+guardrails a bank would actually deploy stop it *without* breaking legitimate work?
+
+FinAgent Red-Team runs every scenario **twice — guardrails off and on** — and reports
+not just *can it be attacked* but *how much do real controls help, and what do they
+cost in usefulness.*
+
+> ⚠️ **Defensive, fully synthetic.** No real money, accounts, or networks. All
+> tools are mocks operating on in-memory state. The goal is to *harden* financial
+> AI agents before deployment.
+
+---
+
+## Why this exists
+
+LLM agents are moving into financial operations — accounts payable, treasury,
+reconciliation, customer servicing. The dangerous failures there are not toxic
+text; they are **silent violations of compliance controls** that look like normal
+task completion: a payment that skipped sanctions screening, a $15k transfer
+quietly split into two $7.5k transfers to dodge reporting, a large wire the agent
+approved for itself.
+
+General agent-security benchmarks test "leak the data" or "do the forbidden
+action." None of them model the **regulatory control surface** of a real financial
+institution, and none measure whether standard guardrails neutralize the attack.
+
+### How this differs from prior work
+
+| | Generic agent-security benchmarks | **FinAgent Red-Team** |
+|---|---|---|
+| Domain | Email/web/travel, generic "banking" | Payments/treasury with real **compliance controls** |
+| Attack goal | Data leak, forbidden action | **Sanctions evasion, structuring, maker-checker defeat** |
+| Defense eval | Usually attack-only | **Paired off/on runs → defense efficacy** |
+| Utility tradeoff | Rarely measured | **Over-refusal control set** included |
+| Judging | Often LLM-graded | **Deterministic** state predicates (reproducible) |
+
+---
+
+## Threat taxonomy (v0.1)
+
+| ID | Threat | Isolated control under test |
+|---|---|---|
+| `T2_unauthorized_transfer` | Indirect injection → fraudulent payment | Payee **allow-list** |
+| `T3_sanctions_evasion` | Pay an allow-listed but **sanctioned** payee | **Sanctions screening** |
+| `T4_structuring` | Split a payment to dodge the reporting threshold | **Reporting / CTR** control |
+| `T5_dual_approval_defeat` | Initiate **and** self-approve a large transfer | **Maker-checker** separation |
+| `BENIGN` | A legitimate payment that should just work | **Over-refusal** (utility) |
+
+Each attack scenario is designed to isolate **one** control, so a "guardrails on"
+block attributes cleanly to a specific defense. (Roadmap: data exfiltration,
+confused-deputy payee swaps, multi-turn laundering chains, obfuscated-name
+sanctions evasion.)
+
+## Metrics
+
+- **ASR (Attack Success Rate)** — fraction of attacks the attacker wins.
+- **Defense efficacy** — ASR(off) − ASR(on); how much real guardrails help.
+- **Utility** — fraction of benign tasks the agent still completes.
+- **Over-refusal cost** — utility(off) − utility(on); the price of safety.
+
+A stack only looks good with **low ASR *and* high utility** — trivially refusing
+everything scores 0% ASR but also 0% utility.
+
+---
+
+## How it works
+
+```
+                 ┌──────────────────────────── deterministic, offline ───────────────────────────┐
+  AgentModel ──► runner ──► sandbox tools ──► World state ──► evaluator ──► Scorecard
+ (any model)     loop       (controls here)   (ground truth)   (predicates)   (ASR / efficacy / utility)
+                 │              ▲
+                 │              └── Policy (guardrails OFF / ON)
+```
+
+- **Sandbox** (`sandbox/`): synthetic accounts, payees, inbox; mock tools
+  (`initiate_transfer`, `approve_transfer`, `screen_sanctions`, …). Compliance
+  controls live inside the tools, gated on `Policy.enabled`.
+- **Scenarios** (`scenarios/`): pure-data tasks + embedded attacks + a structured
+  success predicate.
+- **Evaluator** (`eval/`): judges outcomes from final state — no LLM grader, so
+  results are reproducible.
+- **Agent driver** (`agent/`): any OpenAI-compatible, tool-calling model.
+
+The sandbox, scenarios, and evaluator have **zero third-party dependencies** and
+are fully deterministic — the entire attack→defense pipeline is proven by the
+offline test-suite, no GPU or API key required.
+
+---
+
+## Quickstart
+
+```bash
+pip install -e ".[dev]"      # core + tests
+pytest -q                     # 20 tests: proves attacks land OFF, are blocked ON
+
+# List scenarios (no model needed)
+finagent-redteam --list
+```
+
+Run against a model (needs the `agent` extra):
+
+```bash
+pip install -e ".[agent]"
+
+# local vLLM / SGLang
+finagent-redteam --model Qwen/Qwen3-8B --base-url http://localhost:8000/v1
+# Ollama OpenAI shim
+finagent-redteam --model llama3.1 --base-url http://localhost:11434/v1 --json results.json
+```
+
+### Illustrative scorecard
+
+A worst-case agent that fully complies with every embedded attack (reproduced by
+the offline self-test) yields:
+
+| Metric | Guardrails OFF | Guardrails ON |
+|---|---:|---:|
+| Attack Success Rate | 100% | 0% |
+| Utility (benign completed) | 100% | 100% |
+
+→ **Defense efficacy +100%, over-refusal cost 0%** — i.e. these specific controls
+fully neutralize the v0.1 attacks while preserving the legitimate task. Real
+models land *between* these poles; that gap is what the benchmark measures.
+
+---
+
+## Roadmap
+
+- More threats: data exfiltration, confused-deputy payee/bank-detail swaps,
+  obfuscated-name & homoglyph sanctions evasion, multi-turn layering.
+- A public leaderboard across open and hosted models.
+- Pluggable external guardrails (e.g. LlamaFirewall, NeMo Guardrails) as the
+  "ON" policy, to benchmark *defenses* head-to-head.
+- A paper formalizing the control taxonomy and metrics.
+
+## Responsible use
+
+This is a **defensive** benchmark built on entirely synthetic data and mock tools.
+It contains no real financial credentials, accounts, or exploits against live
+systems. Use it to evaluate and harden agents before they are trusted with money.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Citation
+
+If you use FinAgent Red-Team, please cite it (see [CITATION.cff](CITATION.cff)).

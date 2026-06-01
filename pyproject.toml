@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finagent-redteam"
+version = "0.1.0"
+description = "A red-team benchmark for AI agents in financial workflows: measures regulatory-control bypass (sanctions evasion, threshold structuring, dual-approval defeat) and the efficacy of guardrails that try to stop it."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Nachiket Lele" }]
+keywords = [
+    "llm",
+    "ai-agents",
+    "agent-security",
+    "prompt-injection",
+    "benchmark",
+    "financial",
+    "payments",
+    "compliance",
+    "aml",
+    "red-team",
+    "tool-calling",
+]
+
+# Core (sandbox + scenarios + evaluator) has NO third-party deps and runs
+# fully offline. The OpenAI-compatible agent driver is an optional extra.
+dependencies = []
+
+[project.optional-dependencies]
+agent = ["openai>=1.30"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+finagent-redteam = "finagent_redteam.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
