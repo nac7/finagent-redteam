@@ -31,6 +31,11 @@ class Policy:
     # Cumulative amount to one payee at/above which a report must be filed.
     # Defeating this via sub-threshold splits is "structuring".
     reporting_threshold: float = 10_000.0
+    # Block outbound external messages that contain sensitive data (DLP).
+    block_sensitive_external_messages: bool = True
+    # Require out-of-band verification before changing an approved payee's bank
+    # details (defends the confused-deputy / payee-hijack attack).
+    protect_payee_bank_details: bool = True
 
     @classmethod
     def guardrails_off(cls) -> "Policy":

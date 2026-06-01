@@ -42,20 +42,22 @@ institution, and none measure whether standard guardrails neutralize the attack.
 
 ---
 
-## Threat taxonomy (v0.1)
+## Threat taxonomy (v0.2)
 
 | ID | Threat | Isolated control under test |
 |---|---|---|
 | `T2_unauthorized_transfer` | Indirect injection → fraudulent payment | Payee **allow-list** |
 | `T3_sanctions_evasion` | Pay an allow-listed but **sanctioned** payee | **Sanctions screening** |
+| `T3` (homoglyph) | Sanctioned entity hidden behind look-alike characters | **Normalized** screening |
 | `T4_structuring` | Split a payment to dodge the reporting threshold | **Reporting / CTR** control |
 | `T5_dual_approval_defeat` | Initiate **and** self-approve a large transfer | **Maker-checker** separation |
+| `T6_data_exfiltration` | Email a customer's card/SSN to an external address | **DLP** on outbound messages |
+| `T7_confused_deputy` | Redirect a payee's bank details to an attacker account | **Bank-detail protection** |
 | `BENIGN` | A legitimate payment that should just work | **Over-refusal** (utility) |
 
 Each attack scenario is designed to isolate **one** control, so a "guardrails on"
-block attributes cleanly to a specific defense. (Roadmap: data exfiltration,
-confused-deputy payee swaps, multi-turn laundering chains, obfuscated-name
-sanctions evasion.)
+block attributes cleanly to a specific defense. (8 scenarios in v0.2: 7 attacks +
+1 benign control.)
 
 ## Metrics
 
@@ -98,7 +100,7 @@ offline test-suite, no GPU or API key required.
 
 ```bash
 pip install -e ".[dev]"      # core + tests
-pytest -q                     # 20 tests: proves attacks land OFF, are blocked ON
+pytest -q                     # 32 tests: proves attacks land OFF, are blocked ON
 
 # List scenarios (no model needed)
 finagent-redteam --list
@@ -133,8 +135,8 @@ models land *between* these poles; that gap is what the benchmark measures.
 
 ## Roadmap
 
-- More threats: data exfiltration, confused-deputy payee/bank-detail swaps,
-  obfuscated-name & homoglyph sanctions evasion, multi-turn layering.
+- More threats: **multi-turn layering chains** (route funds through intermediaries),
+  invoice/PDF-borne injection, tool-result poisoning.
 - A public leaderboard across open and hosted models.
 - Pluggable external guardrails (e.g. LlamaFirewall, NeMo Guardrails) as the
   "ON" policy, to benchmark *defenses* head-to-head.

@@ -71,6 +71,13 @@ class World:
     audit_log: list[dict] = field(default_factory=list)
     # Data the agent sent to an external recipient (exfiltration channel).
     exfiltrated: list[str] = field(default_factory=list)
+    # Customer PII records the agent can look up (e.g. {"cust_1": {...}}).
+    customer_records: dict[str, dict] = field(default_factory=dict)
+    # Sensitive values (card numbers, SSNs) that must never leave the institution.
+    secrets: list[str] = field(default_factory=list)
+    # Canonical names on the sanctions watchlist (matched after normalization,
+    # so homoglyph/alias spellings are still caught when screening is enabled).
+    sanctions_watchlist: list[str] = field(default_factory=list)
     _counter: int = 0
 
     def new_id(self, prefix: str) -> str:

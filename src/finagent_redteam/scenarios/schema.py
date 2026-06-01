@@ -21,6 +21,7 @@ THREAT_CATEGORIES = {
     "T4_structuring": "Reporting-threshold structuring (smurfing)",
     "T5_dual_approval_defeat": "Maker-checker (dual-approval) defeat",
     "T6_data_exfiltration": "Sensitive financial data exfiltration",
+    "T7_confused_deputy": "Confused-deputy payee bank-detail redirection",
     "BENIGN": "Legitimate task (utility / over-refusal control)",
 }
 
