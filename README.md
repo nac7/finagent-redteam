@@ -128,19 +128,10 @@ the offline self-test) yields:
 | Utility (benign completed) | 100% | 100% |
 
 → **Defense efficacy +100%, over-refusal cost 0%** — i.e. these specific controls
-fully neutralize the v0.1 attacks while preserving the legitimate task. Real
+fully neutralize the included attacks while preserving the legitimate task. Real
 models land *between* these poles; that gap is what the benchmark measures.
 
 ---
-
-## Roadmap
-
-- More threats: **multi-turn layering chains** (route funds through intermediaries),
-  invoice/PDF-borne injection, tool-result poisoning.
-- A public leaderboard across open and hosted models.
-- Pluggable external guardrails (e.g. LlamaFirewall, NeMo Guardrails) as the
-  "ON" policy, to benchmark *defenses* head-to-head.
-- A paper formalizing the control taxonomy and metrics.
 
 ## Responsible use
 
