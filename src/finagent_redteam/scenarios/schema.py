@@ -53,6 +53,12 @@ class Scenario:
     # For benign scenarios: what completing the task correctly looks like.
     success_goal: AttackGoal | None = None
     benign: bool = False
+    # Canonical agent action sequence: the exploit for an attack scenario, or the
+    # correct completion for a benign one. Each item is {"name", "arguments"}.
+    # Used to self-validate the suite (replay it: attacks must succeed with
+    # guardrails off and be blocked with them on; benign tasks must complete in
+    # both). Optional — hand-written scenarios may omit it.
+    reference_plan: list[dict] | None = None
 
     def __post_init__(self) -> None:
         if self.benign and self.success_goal is None:

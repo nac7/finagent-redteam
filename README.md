@@ -102,13 +102,29 @@ The sandbox, scenarios, and evaluator have **zero third-party dependencies** and
 are fully deterministic — the entire attack→defense pipeline is proven by the
 offline test-suite, no GPU or API key required.
 
+### Generated suite
+
+Beyond the hand-written scenarios, a **seeded generator** produces hundreds of
+cases by combining parametric slots (amounts, payees, accounts), social-
+engineering phrasings (authority, urgency, policy pretext, social proof), and
+obfuscation techniques (homoglyph / spacing for sanctions evasion):
+
+```bash
+finagent-redteam --list --suite generated --per-threat 15   # 120 cases
+```
+
+Every generated scenario carries a **`reference_plan`** — the canonical exploit
+— and the test-suite replays all of them to verify the invariant that each
+attack lands with guardrails off and is blocked with them on. The suite is thus
+**self-validating**: each case is a checked, control-isolating test.
+
 ---
 
 ## Quickstart
 
 ```bash
 pip install -e ".[dev]"      # core + tests
-pytest -q                     # 32 tests: proves attacks land OFF, are blocked ON
+pytest -q                     # 41 tests: proves attacks land OFF, are blocked ON
 
 # List scenarios (no model needed)
 finagent-redteam --list

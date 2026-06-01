@@ -23,7 +23,7 @@ import sys
 from finagent_redteam.eval.metrics import aggregate
 from finagent_redteam.report import to_json, to_markdown
 from finagent_redteam.runner import run_paired
-from finagent_redteam.scenarios import get_all_scenarios
+from finagent_redteam.scenarios import generate_scenarios, get_all_scenarios
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,9 +41,18 @@ def main(argv: list[str] | None = None) -> int:
                         help="write full JSON results to this path")
     parser.add_argument("--list", action="store_true",
                         help="list scenarios and exit (no model needed)")
+    parser.add_argument("--suite", choices=["builtin", "generated"], default="builtin",
+                        help="hand-written builtin suite, or the procedural generator")
+    parser.add_argument("--per-threat", type=int, default=6,
+                        help="generated cases per threat (with --suite generated)")
+    parser.add_argument("--seed", type=int, default=0,
+                        help="generator seed (with --suite generated)")
     args = parser.parse_args(argv)
 
-    scenarios = get_all_scenarios()
+    if args.suite == "generated":
+        scenarios = generate_scenarios(seed=args.seed, per_threat=args.per_threat)
+    else:
+        scenarios = get_all_scenarios()
 
     if args.list:
         for s in scenarios:
