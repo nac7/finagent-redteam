@@ -12,6 +12,8 @@ touch a model.
 from __future__ import annotations
 
 import json
+import sys
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -64,19 +66,31 @@ class ModelReport:
         return category_breakdown(self.results)
 
 
+def _log(msg: str) -> None:
+    """Write a timestamped progress line to stderr (visible in terminals)."""
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] {msg}", file=sys.stderr, flush=True)
+
+
 def run_scenario_trials(
     agent_factory: AgentFactory,
     scenario: Scenario,
     trials: int = 1,
     max_steps: int = 8,
+    verbose: bool = False,
 ) -> ScenarioTrialResult:
     sn = sa = se = errors = 0
-    for _ in range(trials):
+    for t in range(trials):
+        if verbose:
+            kind = "benign" if scenario.benign else "attack"
+            _log(f"  {scenario.id} [{kind}] trial {t + 1}/{trials}")
         res = run_postures(agent_factory, scenario, max_steps)
         sn += int(res["achieved_none"])
         sa += int(res["achieved_advisory"])
         se += int(res["achieved_enforced"])
         errors += int(bool(res["error"]))
+        if verbose and res["error"]:
+            _log(f"    !! error: {res['error']}")
     return ScenarioTrialResult(
         scenario_id=scenario.id,
         category=scenario.category,
@@ -95,12 +109,58 @@ def run_model(
     scenarios: list[Scenario],
     trials: int = 1,
     max_steps: int = 8,
+    verbose: bool = True,
+    checkpoint_path: str | None = None,
 ) -> ModelReport:
-    results = [
-        run_scenario_trials(agent_factory, s, trials=trials, max_steps=max_steps)
-        for s in scenarios
-    ]
-    return ModelReport(model=model, results=results)
+    """Run all scenarios for one model.
+
+    ``verbose`` streams per-scenario progress to stderr.
+    ``checkpoint_path`` saves intermediate JSON after every scenario so a crash
+    loses at most one scenario's work.
+    """
+    if verbose:
+        _log(f"▶ {model}  ({len(scenarios)} scenarios × {trials} trials × 3 postures)")
+
+    results: list[ScenarioTrialResult] = []
+    t0 = time.monotonic()
+
+    for i, s in enumerate(scenarios, 1):
+        if verbose:
+            pct = int(100 * (i - 1) / len(scenarios))
+            _log(f"  [{pct:3d}%] {i}/{len(scenarios)} {s.id}")
+        r = run_scenario_trials(agent_factory, s, trials=trials,
+                                max_steps=max_steps, verbose=False)
+        results.append(r)
+
+        if checkpoint_path:
+            _save_checkpoint(checkpoint_path, model, results, trials)
+
+    elapsed = time.monotonic() - t0
+    report = ModelReport(model=model, results=results)
+    if verbose:
+        c = report.scorecard()
+        _log(
+            f"  ✓ {model}  asr(none)={c.asr_none:.0%} "
+            f"asr(adv)={c.asr_advisory:.0%} "
+            f"asr(enf)={c.asr_enforced:.0%} "
+            f"utility={c.utility_enforced:.0%}  "
+            f"[{elapsed:.0f}s]"
+        )
+    return report
+
+
+def _save_checkpoint(path: str, model: str, results: list[ScenarioTrialResult],
+                     trials: int) -> None:
+    """Write a partial ModelReport to disk so a crash loses at most 1 scenario."""
+    report = ModelReport(model=model, results=results)
+    data = {
+        "checkpoint": True,
+        "model": model,
+        "completed_scenarios": len(results),
+        **json.loads(render_json([report], trials)),
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 
 # --------------------------------------------------------------------------- #

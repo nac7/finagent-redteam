@@ -37,6 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--json", dest="json_out", default=None,
                         help="write full JSON results to this path")
+    parser.add_argument("--checkpoint-dir", default=None,
+                        help="directory to save per-model checkpoints during a run")
+    parser.add_argument("--quiet", action="store_true",
+                        help="suppress per-scenario progress output")
     parser.add_argument("--list", action="store_true",
                         help="list scenarios and exit (no model needed)")
     parser.add_argument("--suite", choices=["builtin", "generated"], default="builtin",
@@ -74,11 +78,19 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- Leaderboard mode: multiple models from a config file --------------- #
     if args.models_config:
+        if args.checkpoint_dir:
+            os.makedirs(args.checkpoint_dir, exist_ok=True)
+
         reports = []
         for spec in load_models_config(args.models_config):
             name = spec["name"]
             api_key = spec.get("api_key") or os.environ.get(
                 spec.get("api_key_env", ""), "EMPTY"
+            )
+            slug = name.replace("/", "_").replace(":", "_")
+            checkpoint = (
+                os.path.join(args.checkpoint_dir, f"{slug}.checkpoint.json")
+                if args.checkpoint_dir else None
             )
 
             def make_agent(spec=spec, api_key=api_key):
@@ -91,7 +103,8 @@ def main(argv: list[str] | None = None) -> int:
 
             reports.append(
                 run_model(name, make_agent, scenarios,
-                          trials=args.trials, max_steps=args.max_steps)
+                          trials=args.trials, max_steps=args.max_steps,
+                          verbose=not args.quiet, checkpoint_path=checkpoint)
             )
 
         print(render_markdown(reports, args.trials))
@@ -115,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     report = run_model(args.model, make_agent, scenarios,
-                       trials=args.trials, max_steps=args.max_steps)
+                       trials=args.trials, max_steps=args.max_steps,
+                       verbose=not args.quiet)
     print(to_markdown(report))
     if args.json_out:
         with open(args.json_out, "w", encoding="utf-8") as f:

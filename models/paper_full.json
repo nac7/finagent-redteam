@@ -1,0 +1,85 @@
+{
+  "_comment": "Full 12-model suite for the paper leaderboard.",
+  "_comment_cost": "Estimated API cost for --per-threat 6 --trials 5: ~$30-80.",
+  "_comment_local": "Ollama models require Ollama running locally (ollama serve).",
+  "models": [
+    {
+      "name": "gpt-4o",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_tier": "frontier"
+    },
+    {
+      "name": "gpt-4o-mini",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_tier": "capable"
+    },
+    {
+      "name": "claude-sonnet-4-6",
+      "base_url": "https://api.anthropic.com/v1",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "temperature": 0.7,
+      "_tier": "frontier"
+    },
+    {
+      "name": "claude-haiku-4-5-20251001",
+      "base_url": "https://api.anthropic.com/v1",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "temperature": 0.7,
+      "_tier": "capable"
+    },
+    {
+      "name": "gemini-2.0-flash",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_key_env": "GEMINI_API_KEY",
+      "temperature": 0.7,
+      "_tier": "capable"
+    },
+    {
+      "name": "mistral-large-latest",
+      "base_url": "https://api.mistral.ai/v1",
+      "api_key_env": "MISTRAL_API_KEY",
+      "temperature": 0.7,
+      "_tier": "capable"
+    },
+    {
+      "name": "llama3.1:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open"
+    },
+    {
+      "name": "llama3.1:70b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open",
+      "_disk_gb": 40,
+      "_note": "Requires 40+ GB RAM/VRAM; consider Together AI or Groq API instead"
+    },
+    {
+      "name": "qwen3:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open"
+    },
+    {
+      "name": "mistral:7b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open"
+    },
+    {
+      "name": "deepseek-r1:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open"
+    },
+    {
+      "name": "phi4:14b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_tier": "open"
+    }
+  ]
+}

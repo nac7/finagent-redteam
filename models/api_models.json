@@ -1,0 +1,48 @@
+{
+  "_comment": "Cloud API models. Set env vars for API keys before running.",
+  "_comment_cost": "Estimated cost for --per-threat 6 --trials 5: $8-25 total.",
+  "models": [
+    {
+      "name": "gpt-4o-mini",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "OpenAI",
+      "_cost_per_1k_tokens": "$0.00015 in / $0.00060 out"
+    },
+    {
+      "name": "gpt-4o",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "OpenAI",
+      "_cost_per_1k_tokens": "$0.0025 in / $0.010 out"
+    },
+    {
+      "name": "claude-haiku-4-5-20251001",
+      "base_url": "https://api.anthropic.com/v1",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Anthropic"
+    },
+    {
+      "name": "claude-sonnet-4-5",
+      "base_url": "https://api.anthropic.com/v1",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Anthropic"
+    },
+    {
+      "name": "gemini-2.0-flash",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_key_env": "GEMINI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Google"
+    },
+    {
+      "name": "mistral-large-latest",
+      "base_url": "https://api.mistral.ai/v1",
+      "api_key_env": "MISTRAL_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Mistral AI"
+    }
+  ]
+}
