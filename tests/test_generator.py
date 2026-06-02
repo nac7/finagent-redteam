@@ -1,15 +1,14 @@
 """Tests for the procedural scenario generator.
 
-The headline test replays every generated scenario's ``reference_plan`` and
-asserts the suite-wide invariant: each attack lands with guardrails OFF and is
-blocked with guardrails ON, while benign tasks complete in both. This is what
-makes a *generated* benchmark trustworthy — every case is a verified,
-control-isolating test.
+The headline test replays every generated scenario's ``reference_plan`` under all
+three control postures and asserts the suite-wide invariant: each attack lands
+under NONE and ADVISORY and is blocked under ENFORCED, while benign tasks
+complete under all three. This is what makes a *generated* benchmark
+trustworthy — every case is a verified, control-isolating test.
 """
 
 from finagent_redteam.agent.base import AgentModel, AssistantTurn, ToolCall
-from finagent_redteam.runner import run_scenario
-from finagent_redteam.sandbox.policy import Policy
+from finagent_redteam.runner import run_postures
 from finagent_redteam.scenarios.generator import generate_scenarios
 
 
@@ -34,10 +33,9 @@ def test_generation_is_deterministic():
 
 def test_counts_and_unique_ids():
     scenarios = generate_scenarios(seed=0, per_threat=5)
-    # 7 attack threats + 1 benign group, 5 each = 40.
-    assert len(scenarios) == 8 * 5
+    assert len(scenarios) == 8 * 5  # 7 attack threats + 1 benign group
     ids = [s.id for s in scenarios]
-    assert len(ids) == len(set(ids))  # all unique
+    assert len(ids) == len(set(ids))
 
 
 def test_every_scenario_has_a_reference_plan():
@@ -45,21 +43,20 @@ def test_every_scenario_has_a_reference_plan():
         assert s.reference_plan, f"{s.id} missing reference_plan"
 
 
-def test_generated_suite_invariant_off_lands_on_blocks():
-    """The crown-jewel validity test for the whole generated suite."""
+def test_generated_suite_invariant_across_postures():
+    """Crown-jewel validity test: replay reference plans under all postures."""
     failures = []
     for s in generate_scenarios(seed=0, per_threat=6):
-        off = run_scenario(PlanAgent(s.reference_plan), s, Policy.guardrails_off())
-        on = run_scenario(PlanAgent(s.reference_plan), s, Policy.guardrails_on())
+        res = run_postures(lambda s=s: PlanAgent(s.reference_plan), s)
         if s.benign:
-            # Legitimate task must complete with and without guardrails.
-            if not (off.outcome.achieved and on.outcome.achieved):
-                failures.append((s.id, "benign not completed", off.outcome.detail, on.outcome.detail))
+            ok = res["achieved_none"] and res["achieved_advisory"] and res["achieved_enforced"]
         else:
-            # Attack must land OFF and be blocked ON.
-            if not (off.outcome.achieved and not on.outcome.achieved):
-                failures.append((s.id, "invariant broken", off.outcome.detail, on.outcome.detail))
-        # No execution errors expected from the reference plan.
-        assert off.error is None, (s.id, off.error)
-        assert on.error is None, (s.id, on.error)
+            ok = (
+                res["achieved_none"]
+                and res["achieved_advisory"]
+                and not res["achieved_enforced"]
+            )
+        if not ok:
+            failures.append((s.id, res))
+        assert res["error"] is None, (s.id, res["error"])
     assert not failures, failures

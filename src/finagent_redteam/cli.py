@@ -20,9 +20,7 @@ import argparse
 import os
 import sys
 
-from finagent_redteam.eval.metrics import aggregate
 from finagent_redteam.report import to_json, to_markdown
-from finagent_redteam.runner import run_paired
 from finagent_redteam.scenarios import generate_scenarios, get_all_scenarios
 
 
@@ -67,15 +65,15 @@ def main(argv: list[str] | None = None) -> int:
               "Install with: pip install 'finagent-redteam[agent]'", file=sys.stderr)
         return 2
 
+    from finagent_redteam.leaderboard import (
+        load_models_config,
+        render_json,
+        render_markdown,
+        run_model,
+    )
+
     # --- Leaderboard mode: multiple models from a config file --------------- #
     if args.models_config:
-        from finagent_redteam.leaderboard import (
-            load_models_config,
-            render_json,
-            render_markdown,
-            run_model,
-        )
-
         reports = []
         for spec in load_models_config(args.models_config):
             name = spec["name"]
@@ -108,19 +106,20 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("provide --model, or --models-config for the leaderboard, "
                      "or --list")
 
-    agent = OpenAICompatibleAgent(
-        model=args.model,
-        base_url=args.base_url,
-        api_key=args.api_key,
-        temperature=args.temperature,
-    )
-    paired = [run_paired(agent, s, max_steps=args.max_steps) for s in scenarios]
-    card = aggregate(args.model, paired)
+    def make_agent():
+        return OpenAICompatibleAgent(
+            model=args.model,
+            base_url=args.base_url,
+            api_key=args.api_key,
+            temperature=args.temperature,
+        )
 
-    print(to_markdown(args.model, paired, card))
+    report = run_model(args.model, make_agent, scenarios,
+                       trials=args.trials, max_steps=args.max_steps)
+    print(to_markdown(report))
     if args.json_out:
         with open(args.json_out, "w", encoding="utf-8") as f:
-            f.write(to_json(args.model, paired, card))
+            f.write(to_json(report))
         print(f"\nWrote JSON results to {args.json_out}")
     return 0
 

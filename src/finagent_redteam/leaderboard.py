@@ -2,8 +2,8 @@
 
 Runs the scenario suite across several models, each scenario repeated for
 ``trials`` independent runs (models are stochastic, so a single run is not a
-defensible measurement), and aggregates into a ranked leaderboard plus a
-per-threat-category attack-success matrix.
+defensible measurement) under all three control postures, and aggregates into a
+ranked leaderboard plus a per-threat-category attack-success matrix.
 
 Aggregation and rendering are pure and offline-testable; only the agent drivers
 touch a model.
@@ -22,8 +22,7 @@ from finagent_redteam.eval.metrics import (
     build_scorecard,
     category_breakdown,
 )
-from finagent_redteam.runner import run_scenario
-from finagent_redteam.sandbox.policy import Policy
+from finagent_redteam.runner import run_postures
 from finagent_redteam.scenarios.schema import Scenario
 
 AgentFactory = Callable[[], AgentModel]
@@ -35,17 +34,22 @@ class ScenarioTrialResult:
     category: str
     benign: bool
     n_trials: int
-    successes_off: int
-    successes_on: int
+    successes_none: int
+    successes_advisory: int
+    successes_enforced: int
     errors: int = 0
 
     @property
-    def rate_off(self) -> float:
-        return self.successes_off / self.n_trials if self.n_trials else 0.0
+    def rate_none(self) -> float:
+        return self.successes_none / self.n_trials if self.n_trials else 0.0
 
     @property
-    def rate_on(self) -> float:
-        return self.successes_on / self.n_trials if self.n_trials else 0.0
+    def rate_advisory(self) -> float:
+        return self.successes_advisory / self.n_trials if self.n_trials else 0.0
+
+    @property
+    def rate_enforced(self) -> float:
+        return self.successes_enforced / self.n_trials if self.n_trials else 0.0
 
 
 @dataclass
@@ -66,26 +70,21 @@ def run_scenario_trials(
     trials: int = 1,
     max_steps: int = 8,
 ) -> ScenarioTrialResult:
-    """Run one scenario ``trials`` times with guardrails off and on.
-
-    ``agent_factory`` is called once per run so stateful drivers (e.g. a scripted
-    test agent) get a fresh instance; for real, stateless model drivers it can
-    simply return the same agent.
-    """
-    succ_off = succ_on = errors = 0
+    sn = sa = se = errors = 0
     for _ in range(trials):
-        off = run_scenario(agent_factory(), scenario, Policy.guardrails_off(), max_steps)
-        on = run_scenario(agent_factory(), scenario, Policy.guardrails_on(), max_steps)
-        errors += bool(off.error) + bool(on.error)
-        succ_off += int(off.outcome.achieved)
-        succ_on += int(on.outcome.achieved)
+        res = run_postures(agent_factory, scenario, max_steps)
+        sn += int(res["achieved_none"])
+        sa += int(res["achieved_advisory"])
+        se += int(res["achieved_enforced"])
+        errors += int(bool(res["error"]))
     return ScenarioTrialResult(
         scenario_id=scenario.id,
         category=scenario.category,
         benign=scenario.benign,
         n_trials=trials,
-        successes_off=succ_off,
-        successes_on=succ_on,
+        successes_none=sn,
+        successes_advisory=sa,
+        successes_enforced=se,
         errors=errors,
     )
 
@@ -109,41 +108,45 @@ def run_model(
 # --------------------------------------------------------------------------- #
 def render_markdown(reports: list[ModelReport], trials: int) -> str:
     cards = [(r, r.scorecard()) for r in reports]
-    # Rank by residual risk after controls (ASR on), then by intrinsic
-    # susceptibility (ASR off) — which is the metric that actually varies by
-    # model when controls are deterministically enforced — then by utility.
+    # Rank by residual risk (enforced), then susceptibility under stated policy
+    # (advisory), then intrinsic (none), then utility.
     ranked = sorted(
         cards,
         key=lambda rc: (
-            rc[1].asr_guardrails_on,
-            rc[1].asr_guardrails_off,
-            -rc[1].utility_guardrails_on,
+            rc[1].asr_enforced,
+            rc[1].asr_advisory,
+            rc[1].asr_none,
+            -rc[1].utility_enforced,
         ),
     )
 
     lines = [
         "# FinAgent Red-Team Leaderboard",
         "",
-        f"Trials per scenario: **{trials}**. Lower ASR and higher utility are better.",
+        f"Trials per scenario: **{trials}**. ASR = Attack Success Rate (lower is "
+        "better). Postures: **none** (no policy stated) → **advisory** (policy "
+        "stated, not enforced) → **enforced** (system hard-blocks).",
         "",
-        "| Rank | Model | ASR off | ASR on | Defense efficacy | Utility on | Over-refusal |",
-        "|---|---|---:|---:|---:|---:|---:|",
+        "| Rank | Model | ASR none | ASR advisory | ASR enforced | Policy-following | "
+        "Enforcement | Utility enf | Over-refusal |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for i, (r, c) in enumerate(ranked, 1):
         lines.append(
-            f"| {i} | {r.model} | {c.asr_guardrails_off:.0%} | {c.asr_guardrails_on:.0%} "
-            f"| {c.defense_efficacy:+.0%} | {c.utility_guardrails_on:.0%} "
-            f"| {c.over_refusal_cost:.0%} |"
+            f"| {i} | {r.model} | {c.asr_none:.0%} | {c.asr_advisory:.0%} "
+            f"| {c.asr_enforced:.0%} | {c.policy_following_uplift:+.0%} "
+            f"| {c.enforcement_uplift:+.0%} | {c.utility_enforced:.0%} "
+            f"| {c.over_refusal:.0%} |"
         )
 
-    # Per-category ASR matrix (guardrails on) — attack categories only.
+    # Per-category ASR under ADVISORY (where models differ most).
     categories = sorted(
         {res.category for r, _ in cards for res in r.results if not res.benign}
     )
     if categories:
         lines += [
             "",
-            "## Attack Success Rate by category (guardrails ON)",
+            "## Attack Success Rate by category — advisory posture (policy stated, not enforced)",
             "",
             "| Category | " + " | ".join(r.model for r, _ in cards) + " |",
             "|---|" + "|".join(["---:"] * len(cards)) + "|",
@@ -152,33 +155,41 @@ def render_markdown(reports: list[ModelReport], trials: int) -> str:
             cells = []
             for r, _ in cards:
                 rs = [x for x in r.results if x.category == cat and not x.benign]
-                val = sum(x.rate_on for x in rs) / len(rs) if rs else 0.0
+                val = sum(x.rate_advisory for x in rs) / len(rs) if rs else 0.0
                 cells.append(f"{val:.0%}")
             lines.append(f"| {cat} | " + " | ".join(cells) + " |")
     return "\n".join(lines)
 
 
+def _scorecard_dict(c: Scorecard) -> dict:
+    return {
+        "asr_none": c.asr_none,
+        "asr_advisory": c.asr_advisory,
+        "asr_enforced": c.asr_enforced,
+        "utility_none": c.utility_none,
+        "utility_advisory": c.utility_advisory,
+        "utility_enforced": c.utility_enforced,
+        "policy_following_uplift": c.policy_following_uplift,
+        "enforcement_uplift": c.enforcement_uplift,
+        "residual_asr": c.residual_asr,
+        "over_refusal": c.over_refusal,
+    }
+
+
 def render_json(reports: list[ModelReport], trials: int) -> str:
     payload = {"trials": trials, "models": []}
     for r in reports:
-        c = r.scorecard()
         payload["models"].append(
             {
                 "model": r.model,
-                "scorecard": {
-                    "asr_guardrails_off": c.asr_guardrails_off,
-                    "asr_guardrails_on": c.asr_guardrails_on,
-                    "utility_guardrails_off": c.utility_guardrails_off,
-                    "utility_guardrails_on": c.utility_guardrails_on,
-                    "defense_efficacy": c.defense_efficacy,
-                    "over_refusal_cost": c.over_refusal_cost,
-                },
+                "scorecard": _scorecard_dict(r.scorecard()),
                 "categories": [
                     {
                         "category": cs.category,
                         "n_scenarios": cs.n_scenarios,
-                        "asr_off": cs.asr_off,
-                        "asr_on": cs.asr_on,
+                        "asr_none": cs.asr_none,
+                        "asr_advisory": cs.asr_advisory,
+                        "asr_enforced": cs.asr_enforced,
                     }
                     for cs in r.categories()
                 ],
@@ -188,8 +199,9 @@ def render_json(reports: list[ModelReport], trials: int) -> str:
                         "category": x.category,
                         "benign": x.benign,
                         "n_trials": x.n_trials,
-                        "rate_off": x.rate_off,
-                        "rate_on": x.rate_on,
+                        "rate_none": x.rate_none,
+                        "rate_advisory": x.rate_advisory,
+                        "rate_enforced": x.rate_enforced,
                         "errors": x.errors,
                     }
                     for x in r.results
