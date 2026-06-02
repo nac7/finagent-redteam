@@ -1,0 +1,90 @@
+# FinAgent Red-Team — inspect_evals register entry
+#
+# STATUS: TEMPLATE — fill in repository_commit, results, and arXiv link
+#         before submitting a PR to UKGovernmentBEIS/inspect_evals.
+#
+# Prerequisites before submitting:
+#   1. PyPI release: pip install finagent-redteam[inspect] works.
+#   2. arXiv preprint is live (fill arxiv field below).
+#   3. Leaderboard results on at least 3 frontier models (fill results below).
+#   4. v0.2.0 git tag exists; use its full 40-char SHA as repository_commit.
+#   5. Open a discussion issue on inspect_evals FIRST — see CONTRIBUTING.md.
+#
+# Submission command (from the inspect_evals repo root):
+#   uv run python tools/validate_register.py register/finagent/eval.yaml
+
+title: "FinAgent Red-Team"
+description: |
+  A red-team benchmark measuring regulatory-control bypass in LLM-based
+  financial agents. Seven threat categories (sanctions evasion, payment
+  structuring, maker-checker defeat, unauthorized transfer, data
+  exfiltration, confused-deputy payee redirection, homoglyph sanctions
+  evasion) evaluated under three control postures (none / advisory /
+  enforced), decomposing attack success into policy-following and
+  enforcement uplift. Scoring is deterministic — no LLM judge.
+
+# Fill after arXiv submission:
+arxiv: ""
+
+contributors:
+  - nac7
+
+tags:
+  - Agents
+  - Safety
+  - Tool Use
+
+metadata:
+  fast: false
+  sandbox: []
+  supports_k8s: false
+
+tasks:
+  - name: finagent_none
+    task_path: src/finagent_redteam/inspect_task.py
+  - name: finagent_advisory
+    task_path: src/finagent_redteam/inspect_task.py
+  - name: finagent_enforced
+    task_path: src/finagent_redteam/inspect_task.py
+
+source:
+  repository_url: https://github.com/nac7/finagent-redteam
+  # Replace with the 40-char SHA of the v0.2.0 release tag:
+  repository_commit: "FILL_IN_AFTER_V0.2.0_TAG"
+  maintainers:
+    - nac7
+
+evaluation_report:
+  # Fill after leaderboard run is complete.
+  timestamp: "FILL_IN"
+  commit: "FILL_IN_AFTER_V0.2.0_TAG"
+  version: "0.2.0"
+  command: >
+    inspect eval src/finagent_redteam/inspect_task.py@finagent_advisory
+    --model openai/gpt-4o --limit 48
+
+  results:
+    # Paste leaderboard results here after running:
+    #   python run_leaderboard.py --config models/paper_full.json --trials 5
+    #
+    # Format per result row:
+    # - model: "openai/gpt-4o"
+    #   provider: "OpenAI"
+    #   task: "finagent_advisory"
+    #   metrics:
+    #     - {key: asr_advisory, value: 0.XX}
+    #     - {key: policy_following_uplift, value: 0.XX}
+    #     - {key: utility_enforced, value: 0.XX}
+    #   time: "XXmin"
+    - model: "FILL_IN"
+      provider: "FILL_IN"
+      task: "finagent_advisory"
+      metrics:
+        - {key: asr_advisory, value: 0.0}
+        - {key: policy_following_uplift, value: 0.0}
+        - {key: utility_enforced, value: 0.0}
+
+  notes:
+    - "Generated suite: per_threat=6, seed=0 (48 attack + 6 benign = 54 scenarios)."
+    - "Trials: 5 per scenario. Temperature: 0.7."
+    - "Scoring is fully deterministic — no LLM judge."

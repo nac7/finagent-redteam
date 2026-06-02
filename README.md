@@ -141,7 +141,7 @@ control-isolating test.
 
 ```bash
 pip install -e ".[dev]"      # core + tests
-pytest -q                     # 41 tests: proves attacks land (none/advisory), blocked (enforced)
+pytest -q                     # 47 tests: proves attacks land (none/advisory), blocked (enforced)
 
 # List scenarios (no model needed)
 finagent-redteam --list
