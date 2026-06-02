@@ -74,7 +74,9 @@ def _parse_args() -> argparse.Namespace:
 
 def _log(msg: str) -> None:
     ts = time.strftime("%H:%M:%S")
-    print(f"[{ts}] {msg}", flush=True)
+    line = f"[{ts}] {msg}\n"
+    sys.stdout.buffer.write(line.encode(sys.stdout.encoding or "utf-8", errors="replace"))
+    sys.stdout.buffer.flush()
 
 
 def main() -> int:
@@ -128,7 +130,7 @@ def main() -> int:
         )
         checkpoint = os.path.join(args.checkpoint_dir, f"{slug}.checkpoint.json")
 
-        _log(f"── Model {i}/{len(all_specs)}: {name}")
+        _log(f"-- Model {i}/{len(all_specs)}: {name}")
 
         def make_agent(spec: dict = spec, api_key: str = api_key):
             return OpenAICompatibleAgent(
@@ -183,8 +185,10 @@ def main() -> int:
     _log(f"Done in {elapsed / 60:.1f} min  →  {json_path}")
     _log(f"Leaderboard  →  {md_path}")
 
-    # Print markdown to stdout so it's visible in the terminal.
-    print("\n" + render_markdown(reports, args.trials))
+    # Print markdown to stdout (encode safely for Windows terminals).
+    md_out = "\n" + render_markdown(reports, args.trials) + "\n"
+    sys.stdout.buffer.write(md_out.encode(sys.stdout.encoding or "utf-8", errors="replace"))
+    sys.stdout.buffer.flush()
     return 0
 
 

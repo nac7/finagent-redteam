@@ -69,7 +69,9 @@ class ModelReport:
 def _log(msg: str) -> None:
     """Write a timestamped progress line to stderr (visible in terminals)."""
     ts = time.strftime("%H:%M:%S")
-    print(f"[{ts}] {msg}", file=sys.stderr, flush=True)
+    line = f"[{ts}] {msg}\n"
+    sys.stderr.buffer.write(line.encode(sys.stderr.encoding or "utf-8", errors="replace"))
+    sys.stderr.buffer.flush()
 
 
 def run_scenario_trials(
@@ -119,7 +121,7 @@ def run_model(
     loses at most one scenario's work.
     """
     if verbose:
-        _log(f"▶ {model}  ({len(scenarios)} scenarios × {trials} trials × 3 postures)")
+        _log(f">> {model}  ({len(scenarios)} scenarios x {trials} trials x 3 postures)")
 
     results: list[ScenarioTrialResult] = []
     t0 = time.monotonic()
@@ -140,7 +142,7 @@ def run_model(
     if verbose:
         c = report.scorecard()
         _log(
-            f"  ✓ {model}  asr(none)={c.asr_none:.0%} "
+            f"  OK {model}  asr(none)={c.asr_none:.0%} "
             f"asr(adv)={c.asr_advisory:.0%} "
             f"asr(enf)={c.asr_enforced:.0%} "
             f"utility={c.utility_enforced:.0%}  "
