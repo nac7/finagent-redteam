@@ -1,5 +1,11 @@
 # FinAgent Red-Team
 
+[![CI](https://github.com/nac7/finagent-redteam/actions/workflows/ci.yml/badge.svg)](https://github.com/nac7/finagent-redteam/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/finagent-redteam)](https://pypi.org/project/finagent-redteam/)
+[![Python](https://img.shields.io/pypi/pyversions/finagent-redteam)](https://pypi.org/project/finagent-redteam/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/nac7/finagent-redteam/graph/badge.svg)](https://codecov.io/gh/nac7/finagent-redteam)
+
 **A red-team benchmark for AI agents that handle money — focused on *regulatory-control bypass*, not just generic misbehavior.**
 
 Can a crafted invoice, vendor email, or chat message trick an LLM agent into

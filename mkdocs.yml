@@ -1,0 +1,54 @@
+site_name: FinAgent Red-Team
+site_url: https://nac7.github.io/finagent-redteam/
+site_description: >-
+  A red-team benchmark for AI agents in financial workflows — measuring
+  regulatory-control bypass (sanctions evasion, structuring, dual-approval
+  defeat) under three control postures.
+site_author: Nachiket Lele
+repo_url: https://github.com/nac7/finagent-redteam
+repo_name: nac7/finagent-redteam
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.annotate
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - admonition
+
+nav:
+  - Home: index.md
+  - Threat Taxonomy: threats.md
+  - Methodology: methodology.md
+  - Leaderboard: leaderboard.md
+  - API Reference: api.md
+  - Datasheet: datasheet.md
+  - Contributing: contributing.md

@@ -4,24 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "finagent-redteam"
-version = "0.1.0"
+version = "0.2.0"
 description = "A red-team benchmark for AI agents in financial workflows: measures regulatory-control bypass (sanctions evasion, threshold structuring, dual-approval defeat) and the efficacy of guardrails that try to stop it."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Nachiket Lele" }]
+authors = [{ name = "Nachiket Lele", email = "lelenachiket991@gmail.com" }]
 keywords = [
-    "llm",
-    "ai-agents",
-    "agent-security",
-    "prompt-injection",
-    "benchmark",
-    "financial",
-    "payments",
-    "compliance",
-    "aml",
-    "red-team",
-    "tool-calling",
+    "llm", "ai-agents", "agent-security", "prompt-injection", "benchmark",
+    "financial", "payments", "compliance", "aml", "red-team", "tool-calling",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
 ]
 
 # Core (sandbox + scenarios + evaluator) has NO third-party deps and runs
@@ -30,7 +34,12 @@ dependencies = []
 
 [project.optional-dependencies]
 agent = ["openai>=1.30"]
-dev = ["pytest>=7"]
+dev   = ["pytest>=7", "pytest-cov", "ruff", "mypy"]
+
+[project.urls]
+Homepage = "https://github.com/nac7/finagent-redteam"
+Repository = "https://github.com/nac7/finagent-redteam"
+Issues = "https://github.com/nac7/finagent-redteam/issues"
 
 [project.scripts]
 finagent-redteam = "finagent_redteam.cli:main"
@@ -39,5 +48,24 @@ finagent-redteam = "finagent_redteam.cli:main"
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
+pythonpath  = ["src"]
+testpaths   = ["tests"]
+addopts     = "--tb=short -q"
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",   # line too long — handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.mypy]
+python_version     = "3.10"
+strict             = true
+ignore_missing_imports = true

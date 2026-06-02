@@ -1,15 +1,38 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+message: "If you use FinAgent Red-Team in your research, please cite it as below."
 title: "FinAgent Red-Team: A benchmark for regulatory-control bypass in financial AI agents"
+abstract: >
+  A red-team benchmark that evaluates LLM-based financial agents on seven
+  regulatory-control bypass threats (sanctions evasion, payment structuring,
+  maker-checker defeat, unauthorized transfer, data exfiltration, confused-deputy
+  payee redirection, and homoglyph sanctions evasion) under three control postures
+  (none, advisory, enforced), decomposing attack success into policy-following and
+  enforcement uplift.
 authors:
   - family-names: Lele
     given-names: Nachiket
-version: 0.1.0
-date-released: 2026-05-31
+    email: lelenachiket991@gmail.com
+    orcid: ""
+version: "0.2.0"
+date-released: "2026-06-01"
 license: MIT
+repository-code: "https://github.com/nac7/finagent-redteam"
+url: "https://github.com/nac7/finagent-redteam"
 keywords:
   - ai-agents
   - agent-security
   - prompt-injection
   - financial-compliance
   - benchmark
+  - red-teaming
+  - sanctions-evasion
+  - aml
+  - llm-safety
+preferred-citation:
+  type: software
+  title: "FinAgent Red-Team: A benchmark for regulatory-control bypass in financial AI agents"
+  authors:
+    - family-names: Lele
+      given-names: Nachiket
+  year: 2026
+  url: "https://github.com/nac7/finagent-redteam"
