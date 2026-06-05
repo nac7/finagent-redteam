@@ -113,6 +113,7 @@ def run_model(
     max_steps: int = 8,
     verbose: bool = True,
     checkpoint_path: str | None = None,
+    label: str | None = None,
 ) -> ModelReport:
     """Run all scenarios for one model.
 
@@ -120,8 +121,9 @@ def run_model(
     ``checkpoint_path`` saves intermediate JSON after every scenario so a crash
     loses at most one scenario's work.
     """
+    display = label or model
     if verbose:
-        _log(f">> {model}  ({len(scenarios)} scenarios x {trials} trials x 3 postures)")
+        _log(f">> {display}  ({len(scenarios)} scenarios x {trials} trials x 3 postures)")
 
     results: list[ScenarioTrialResult] = []
     t0 = time.monotonic()
@@ -142,7 +144,7 @@ def run_model(
     if verbose:
         c = report.scorecard()
         _log(
-            f"  OK {model}  asr(none)={c.asr_none:.0%} "
+            f"  OK {display}  asr(none)={c.asr_none:.0%} "
             f"asr(adv)={c.asr_advisory:.0%} "
             f"asr(enf)={c.asr_enforced:.0%} "
             f"utility={c.utility_enforced:.0%}  "

@@ -1,0 +1,46 @@
+{
+  "_comment": "Zero-cost models — Groq free tier + Gemini free tier. No credit card needed.",
+  "_comment_keys": {
+    "GROQ_API_KEY": "console.groq.com → Create account → API Keys (instant, free)",
+    "GEMINI_API_KEY": "aistudio.google.com → Get API key (free, no billing needed)"
+  },
+  "_comment_speed": "Groq runs at ~700 tok/s. Full run (per-threat=6, trials=3) takes ~20 min total.",
+  "models": [
+    {
+      "name": "llama-3.3-70b-versatile",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_size": "70B",
+      "_note": "GPT-4 class quality at free-tier speed"
+    },
+    {
+      "name": "llama-3.1-8b-instant",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_size": "8B",
+      "_note": "Direct cloud comparison to the local llama3.1:8b Ollama result"
+    },
+    {
+      "name": "gemma2-9b-it",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_size": "9B",
+      "_note": "Google Gemma 2 — different architecture from Llama family"
+    },
+    {
+      "name": "gemini-2.0-flash",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_key_env": "GEMINI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Google",
+      "_size": "frontier",
+      "_note": "Google flagship at free-tier speeds"
+    }
+  ]
+}

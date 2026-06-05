@@ -99,6 +99,7 @@ def main(argv: list[str] | None = None) -> int:
                     base_url=spec.get("base_url"),
                     api_key=api_key,
                     temperature=spec.get("temperature", args.temperature),
+                    extra_body=spec.get("extra_body"),
                 )
 
             reports.append(

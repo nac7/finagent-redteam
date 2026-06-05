@@ -3,12 +3,22 @@
 Works against any endpoint that speaks the OpenAI chat-completions API with tool
 calling: hosted OpenAI, a local vLLM/SGLang server, Ollama's OpenAI shim, etc.
 Import is isolated here so the offline core/test-suite never needs ``openai``.
+
+``extra_body`` lets callers pass provider-specific parameters that are not part of
+the standard OpenAI schema. The primary use-case is disabling qwen3's chain-of-
+thought mode to keep latency manageable:
+
+    OpenAICompatibleAgent("qwen3:8b", extra_body={"think": False})
+
+Ollama forwards unknown top-level keys to the underlying model runner, so this
+suppresses the ``<think>...</think>`` prefix that otherwise adds minutes per call.
 """
 
 from __future__ import annotations
 
 import json
 import time
+from typing import Any
 
 from finagent_redteam.agent.base import AgentModel, AssistantTurn, ToolCall
 
@@ -25,6 +35,7 @@ class OpenAICompatibleAgent(AgentModel):
         timeout: float = 120.0,
         max_retries: int = 3,
         retry_delay: float = 5.0,
+        extra_body: dict[str, Any] | None = None,
     ):
         from openai import OpenAI  # lazy: only needed to actually drive a model
 
@@ -33,6 +44,7 @@ class OpenAICompatibleAgent(AgentModel):
         self.temperature = temperature
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.extra_body = extra_body or {}
 
     def complete(self, messages: list[dict], tools: list[dict]) -> AssistantTurn:
         last_exc: Exception | None = None
@@ -44,6 +56,7 @@ class OpenAICompatibleAgent(AgentModel):
                     tools=tools,
                     tool_choice="auto",
                     temperature=self.temperature,
+                    extra_body=self.extra_body or None,
                 )
                 msg = resp.choices[0].message
                 tool_calls: list[ToolCall] = []

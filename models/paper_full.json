@@ -1,25 +1,20 @@
 {
   "_comment": "Full 12-model suite for the paper leaderboard.",
-  "_comment_cost": "Estimated API cost for --per-threat 6 --trials 5: ~$30-80.",
-  "_comment_local": "Ollama models require Ollama running locally (ollama serve).",
+  "_comment_cost": "API cost at --per-threat 6 --trials 3: ~$15-25 total.",
+  "_comment_time": "Groq models: ~15 min. Ollama local: ~2-3 hrs. Claude/OpenAI: ~1 hr.",
+  "_comment_keys": {
+    "ANTHROPIC_API_KEY": "console.anthropic.com",
+    "OPENAI_API_KEY": "platform.openai.com",
+    "GEMINI_API_KEY": "aistudio.google.com (free)",
+    "GROQ_API_KEY": "console.groq.com (free)"
+  },
   "models": [
-    {
-      "name": "gpt-4o",
-      "api_key_env": "OPENAI_API_KEY",
-      "temperature": 0.7,
-      "_tier": "frontier"
-    },
-    {
-      "name": "gpt-4o-mini",
-      "api_key_env": "OPENAI_API_KEY",
-      "temperature": 0.7,
-      "_tier": "capable"
-    },
     {
       "name": "claude-sonnet-4-6",
       "base_url": "https://api.anthropic.com/v1",
       "api_key_env": "ANTHROPIC_API_KEY",
       "temperature": 0.7,
+      "_provider": "Anthropic",
       "_tier": "frontier"
     },
     {
@@ -27,6 +22,21 @@
       "base_url": "https://api.anthropic.com/v1",
       "api_key_env": "ANTHROPIC_API_KEY",
       "temperature": 0.7,
+      "_provider": "Anthropic",
+      "_tier": "capable"
+    },
+    {
+      "name": "gpt-4o",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "OpenAI",
+      "_tier": "frontier"
+    },
+    {
+      "name": "gpt-4o-mini",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "OpenAI",
       "_tier": "capable"
     },
     {
@@ -34,52 +44,61 @@
       "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
       "api_key_env": "GEMINI_API_KEY",
       "temperature": 0.7,
+      "_provider": "Google",
       "_tier": "capable"
+    },
+    {
+      "name": "llama-3.3-70b-versatile",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "capable"
+    },
+    {
+      "name": "llama-3.1-8b-instant",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "small"
+    },
+    {
+      "name": "gemma2-9b-it",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "small"
+    },
+    {
+      "name": "llama3.1:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_provider": "Ollama (local)",
+      "_tier": "small"
+    },
+    {
+      "name": "qwen3:8b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_provider": "Ollama (local)",
+      "_tier": "small"
+    },
+    {
+      "name": "mistral:7b",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_provider": "Ollama (local)",
+      "_tier": "small"
     },
     {
       "name": "mistral-large-latest",
       "base_url": "https://api.mistral.ai/v1",
       "api_key_env": "MISTRAL_API_KEY",
       "temperature": 0.7,
-      "_tier": "capable"
-    },
-    {
-      "name": "llama3.1:8b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open"
-    },
-    {
-      "name": "llama3.1:70b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open",
-      "_disk_gb": 40,
-      "_note": "Requires 40+ GB RAM/VRAM; consider Together AI or Groq API instead"
-    },
-    {
-      "name": "qwen3:8b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open"
-    },
-    {
-      "name": "mistral:7b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open"
-    },
-    {
-      "name": "deepseek-r1:8b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open"
-    },
-    {
-      "name": "phi4:14b",
-      "base_url": "http://localhost:11434/v1",
-      "temperature": 0.7,
-      "_tier": "open"
+      "_provider": "Mistral AI",
+      "_tier": "frontier"
     }
   ]
 }
