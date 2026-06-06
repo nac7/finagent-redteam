@@ -21,3 +21,4 @@ results*.json
 .DS_Store
 .idea/
 .vscode/
+CONTRIBUTION_GUIDE_1.md
