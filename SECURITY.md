@@ -19,7 +19,7 @@ known CVE, or a data-handling bug):
 
 **Please do not open a public GitHub issue.**
 
-Instead, email **lelenachiket991@gmail.com** with:
+Instead, email **lelenachiket07@gmail.com** with:
 
 - A description of the issue and its potential impact.
 - Steps to reproduce.

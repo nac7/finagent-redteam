@@ -151,7 +151,7 @@ No.
 Nachiket Lele (GitHub: nac7). Contributions welcome via pull request.
 
 **How can the owner/curator/manager be contacted?**  
-Open a GitHub issue or email lelenachiket991@gmail.com.
+Open a GitHub issue or email lelenachiket07@gmail.com.
 
 **Will the dataset be updated?**  
 Yes. New threat categories, regulatory updates, and generator improvements will

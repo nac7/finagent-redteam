@@ -5,9 +5,10 @@
     "ANTHROPIC_API_KEY": "console.anthropic.com → API keys",
     "GEMINI_API_KEY": "aistudio.google.com → Get API key (free tier available)",
     "GROQ_API_KEY": "console.groq.com → API keys (free tier, very fast)",
-    "MISTRAL_API_KEY": "console.mistral.ai → API keys"
+    "MISTRAL_API_KEY": "console.mistral.ai → API keys",
+    "OPENROUTER_API_KEY": "openrouter.ai → Keys (pay-as-you-go, access to Qwen/DeepSeek/etc.)"
   },
-  "_comment_cost": "Estimated cost at --per-threat 6 --trials 3: ~$5-15 total for all models.",
+  "_comment_cost": "Estimated cost at --per-threat 6 --trials 3: ~$15-30 total for all 12 models.",
   "models": [
     {
       "name": "claude-haiku-4-5-20251001",
@@ -80,6 +81,47 @@
       "_provider": "Mistral AI",
       "_cost_estimate": "~$2 for full run",
       "_tier": "frontier"
+    },
+    {
+      "name": "gemini-2.5-pro",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+      "api_key_env": "GEMINI_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Google",
+      "_cost_estimate": "~$3 for full run",
+      "_tier": "frontier",
+      "_note": "Google flagship reasoning model; strong on complex multi-step tasks"
+    },
+    {
+      "name": "meta-llama/llama-4-scout",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq (Meta)",
+      "_cost_estimate": "free tier",
+      "_tier": "frontier",
+      "_note": "Meta Llama 4 Scout MoE via Groq; latest open-weight frontier model"
+    },
+    {
+      "name": "qwen/qwen3-235b-a22b",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY",
+      "temperature": 0.7,
+      "extra_body": {"thinking": {"type": "disabled"}},
+      "_provider": "OpenRouter (Alibaba)",
+      "_cost_estimate": "~$1 for full run",
+      "_tier": "frontier",
+      "_note": "Alibaba Qwen3 235B MoE; disable thinking mode to avoid 3-5 min calls per scenario"
+    },
+    {
+      "name": "deepseek/deepseek-chat-v3-0324",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY",
+      "temperature": 0.7,
+      "_provider": "OpenRouter (DeepSeek)",
+      "_cost_estimate": "~$1 for full run",
+      "_tier": "frontier",
+      "_note": "DeepSeek V3.1; strong open-weight model, important for international leaderboard coverage"
     }
   ]
 }
