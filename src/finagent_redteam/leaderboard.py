@@ -247,7 +247,8 @@ def render_markdown(reports: list[ModelReport], trials: int) -> str:
         "",
         f"Trials per scenario: **{trials}**. ASR = Attack Success Rate (lower is "
         "better). Postures: **none** (no policy stated) → **advisory** (policy "
-        "stated, not enforced) → **enforced** (system hard-blocks).",
+        "stated, not enforced) → **enforced** (system hard-blocks). "
+        "95% Wilson CI shown in brackets.",
         "",
         "| Rank | Model | ASR none | ASR advisory | ASR enforced | Policy-following | "
         "Enforcement | Utility enf | Over-refusal |",
@@ -255,9 +256,13 @@ def render_markdown(reports: list[ModelReport], trials: int) -> str:
     ]
     for i, (r, c) in enumerate(ranked, 1):
         lines.append(
-            f"| {i} | {r.model} | {c.asr_none:.0%} | {c.asr_advisory:.0%} "
-            f"| {c.asr_enforced:.0%} | {c.policy_following_uplift:+.0%} "
-            f"| {c.enforcement_uplift:+.0%} | {c.utility_enforced:.0%} "
+            f"| {i} | {r.model} "
+            f"| {c.asr_none:.0%} {c.asr_none_ci} "
+            f"| {c.asr_advisory:.0%} {c.asr_advisory_ci} "
+            f"| {c.asr_enforced:.0%} {c.asr_enforced_ci} "
+            f"| {c.policy_following_uplift:+.0%} "
+            f"| {c.enforcement_uplift:+.0%} "
+            f"| {c.utility_enforced:.0%} {c.utility_enforced_ci} "
             f"| {c.over_refusal:.0%} |"
         )
 
@@ -286,11 +291,17 @@ def render_markdown(reports: list[ModelReport], trials: int) -> str:
 def _scorecard_dict(c: Scorecard) -> dict:
     return {
         "asr_none": c.asr_none,
+        "asr_none_ci": c.asr_none_ci.as_dict(),
         "asr_advisory": c.asr_advisory,
+        "asr_advisory_ci": c.asr_advisory_ci.as_dict(),
         "asr_enforced": c.asr_enforced,
+        "asr_enforced_ci": c.asr_enforced_ci.as_dict(),
         "utility_none": c.utility_none,
+        "utility_none_ci": c.utility_none_ci.as_dict(),
         "utility_advisory": c.utility_advisory,
+        "utility_advisory_ci": c.utility_advisory_ci.as_dict(),
         "utility_enforced": c.utility_enforced,
+        "utility_enforced_ci": c.utility_enforced_ci.as_dict(),
         "policy_following_uplift": c.policy_following_uplift,
         "enforcement_uplift": c.enforcement_uplift,
         "residual_asr": c.residual_asr,
