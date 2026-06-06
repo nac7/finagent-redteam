@@ -13,8 +13,8 @@ venv/
 .ruff_cache/
 .mypy_cache/
 
-# Results
-results*.json
+# Local run artifacts (not results)
+checkpoints/
 *.local
 
 # OS / editor
