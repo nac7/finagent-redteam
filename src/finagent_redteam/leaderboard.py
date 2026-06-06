@@ -105,6 +105,43 @@ def run_scenario_trials(
     )
 
 
+def _load_checkpoint(path: str) -> tuple[list[ScenarioTrialResult], int] | None:
+    """Load a checkpoint file.
+
+    Returns (results, completed_count) if the file exists and is valid,
+    or None if the file does not exist or is malformed.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+    if not data.get("checkpoint"):
+        return None
+
+    completed = data.get("completed_scenarios", 0)
+    models = data.get("models", [])
+    if not models:
+        return None
+
+    scenarios_raw = models[0].get("scenarios", [])
+    results: list[ScenarioTrialResult] = []
+    for s in scenarios_raw:
+        n = s.get("n_trials", 1)
+        results.append(ScenarioTrialResult(
+            scenario_id=s["scenario_id"],
+            category=s["category"],
+            benign=s.get("benign", False),
+            n_trials=n,
+            successes_none=round(s.get("rate_none", 0.0) * n),
+            successes_advisory=round(s.get("rate_advisory", 0.0) * n),
+            successes_enforced=round(s.get("rate_enforced", 0.0) * n),
+            errors=s.get("errors", 0),
+        ))
+    return results, completed
+
+
 def run_model(
     model: str,
     agent_factory: AgentFactory,
@@ -119,16 +156,37 @@ def run_model(
 
     ``verbose`` streams per-scenario progress to stderr.
     ``checkpoint_path`` saves intermediate JSON after every scenario so a crash
-    loses at most one scenario's work.
+    loses at most one scenario's work.  If the checkpoint already covers all
+    scenarios the model is skipped entirely (results loaded from disk).
     """
     display = label or model
-    if verbose:
-        _log(f">> {display}  ({len(scenarios)} scenarios x {trials} trials x 3 postures)")
 
-    results: list[ScenarioTrialResult] = []
+    # --- Resume from checkpoint if available ---------------------------------
+    prior_results: list[ScenarioTrialResult] = []
+    if checkpoint_path:
+        loaded = _load_checkpoint(checkpoint_path)
+        if loaded is not None:
+            prior_results, completed = loaded
+            if completed >= len(scenarios):
+                # Fully done — load and return without touching the model.
+                if verbose:
+                    _log(f"  SKIP {display}  (checkpoint complete: {completed}/{len(scenarios)} scenarios)")
+                return ModelReport(model=model, results=prior_results)
+            if completed > 0 and verbose:
+                _log(f"  RESUME {display}  from scenario {completed + 1}/{len(scenarios)}")
+
+    completed_ids = {r.scenario_id for r in prior_results}
+    results: list[ScenarioTrialResult] = list(prior_results)
+
+    if verbose:
+        remaining = len(scenarios) - len(completed_ids)
+        _log(f">> {display}  ({remaining} remaining scenarios x {trials} trials x 3 postures)")
+
     t0 = time.monotonic()
 
     for i, s in enumerate(scenarios, 1):
+        if s.id in completed_ids:
+            continue
         if verbose:
             pct = int(100 * (i - 1) / len(scenarios))
             _log(f"  [{pct:3d}%] {i}/{len(scenarios)} {s.id}")
