@@ -25,6 +25,7 @@ Outputs:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -41,6 +42,19 @@ from finagent_redteam.leaderboard import (
     run_model,
 )
 from finagent_redteam.scenarios import generate_scenarios, get_all_scenarios
+
+try:
+    import track_progress as _tracker
+except ImportError:
+    _tracker = None
+
+
+def _update_progress() -> None:
+    if _tracker is not None:
+        try:
+            _tracker.update_progress_md()
+        except Exception:
+            pass
 
 
 def _parse_args() -> argparse.Namespace:
@@ -110,6 +124,9 @@ def main() -> int:
     os.makedirs(args.out_dir, exist_ok=True)
     os.makedirs(args.checkpoint_dir, exist_ok=True)
 
+    # Snapshot current state before any model runs.
+    _update_progress()
+
     # --- Import agent driver (needs openai package) --------------------------
     try:
         from finagent_redteam.agent.openai_agent import OpenAICompatibleAgent
@@ -121,6 +138,37 @@ def main() -> int:
     # --- Run each model -------------------------------------------------------
     reports = []
     t_start = time.monotonic()
+
+    # Setup for incremental results writing
+    today = date.today().isoformat()
+    suite_tag = f"generated-p{args.per_threat}" if args.suite == "generated" else "builtin"
+    stem = f"{today}_{suite_tag}_{args.trials}trials"
+
+    # Generate run_hash from scenario IDs and seed for reproducibility
+    scenario_ids = "|".join(s.scenario_id for s in scenarios)
+    run_hash_input = f"{scenario_ids}|seed={args.seed}"
+    run_hash = hashlib.sha256(run_hash_input.encode()).hexdigest()[:16]
+
+    # Get runner version from package metadata
+    try:
+        import importlib.metadata
+        runner_version = importlib.metadata.version("finagent-redteam")
+    except (ImportError, importlib.metadata.PackageNotFoundError):
+        runner_version = "dev"
+
+    metadata = {
+        "date": today,
+        "suite": args.suite,
+        "per_threat": args.per_threat if args.suite == "generated" else None,
+        "seed": args.seed,
+        "run_hash": run_hash,
+        "runner_version": runner_version,
+        "trials": args.trials,
+        "temperature": args.temperature,
+        "max_steps": args.max_steps,
+    }
+    json_path = os.path.join(args.out_dir, f"{stem}.json")
+    md_path = os.path.join(args.out_dir, f"{stem}.md")
 
     for i, spec in enumerate(all_specs, 1):
         name = spec["name"]
@@ -148,39 +196,25 @@ def main() -> int:
                 verbose=not args.quiet, checkpoint_path=checkpoint,
             )
             reports.append(report)
+            # Save results file after each model completes.
+            json_payload = json.loads(render_json(reports, args.trials))
+            json_payload["metadata"] = metadata
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(json_payload, f, indent=2)
+            with open(md_path, "w", encoding="utf-8") as f:
+                f.write(render_markdown(reports, args.trials))
+                f.write("\n")
+            _log(f"  ✓ Results saved to {json_path}")
         except Exception as e:  # noqa: BLE001
             _log(f"  !! FAILED: {e}  (skipping, checkpoint preserved at {checkpoint})")
             continue
+        finally:
+            # Refresh progress MD after every model (success or failure).
+            _update_progress()
 
     if not reports:
         print("ERROR: no models completed successfully.", file=sys.stderr)
         return 1
-
-    # --- Write outputs --------------------------------------------------------
-    today = date.today().isoformat()
-    stem = f"{today}_{suite_tag}_{args.trials}trials"
-
-    metadata = {
-        "date": today,
-        "suite": args.suite,
-        "per_threat": args.per_threat if args.suite == "generated" else None,
-        "seed": args.seed,
-        "trials": args.trials,
-        "temperature": args.temperature,
-        "max_steps": args.max_steps,
-    }
-
-    json_payload = json.loads(render_json(reports, args.trials))
-    json_payload["metadata"] = metadata
-
-    json_path = os.path.join(args.out_dir, f"{stem}.json")
-    md_path   = os.path.join(args.out_dir, f"{stem}.md")
-
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(json_payload, f, indent=2)
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(render_markdown(reports, args.trials))
-        f.write("\n")
 
     elapsed = time.monotonic() - t_start
     _log(f"Done in {elapsed / 60:.1f} min  →  {json_path}")
