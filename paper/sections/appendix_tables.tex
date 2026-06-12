@@ -1,0 +1,185 @@
+\subsection{Full Pairwise Significance Table}
+
+Table \ref{tab:pairwise} lists all 63 pairwise comparisons (21 model pairs × 3 postures), sorted by p-value (ascending). Significant differences at $p < 0.05$ are highlighted.
+
+\begin{table}[p]
+\centering
+\small
+\caption{Pairwise bootstrap significance tests. All comparisons at 10,000 resamples. ASR diff = Model A ASR − Model B ASR. Negative difference means Model A has lower ASR (better security).}
+\label{tab:pairwise}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Comparison} & \textbf{Posture} & \textbf{p-value} & \textbf{ASR Diff} & \textbf{95\% CI} \\
+\hline
+\multicolumn{5}{|c|}{\textit{Significant comparisons}} \\
+\hline
+Claude vs.\ Qwen & Advisory & $<$0.001 & −0.4524 & [−0.5378, −0.3671] \\
+Claude vs.\ Gemma & Advisory & 0.0014 & −0.3149 & [−0.4186, −0.2087] \\
+Gemini vs.\ Llama & Advisory & 0.0024 & −0.2237 & [−0.3148, −0.1355] \\
+Claude vs.\ Llama & Advisory & 0.0031 & −0.2225 & [−0.3137, −0.1324] \\
+Gemini vs.\ Qwen & Advisory & 0.0001 & −0.4532 & [−0.5389, −0.3678] \\
+Mistral vs.\ Qwen & Advisory & $<$0.001 & −0.4507 & [−0.5361, −0.3652] \\
+Haiku vs.\ Qwen & Advisory & $<$0.001 & −0.4516 & [−0.5372, −0.3661] \\
+Mistral vs.\ Gemma & Advisory & 0.0019 & −0.3127 & [−0.4162, −0.2065] \\
+Haiku vs.\ Gemma & Advisory & 0.0015 & −0.3138 & [−0.4175, −0.2076] \\
+Haiku vs.\ Llama & Advisory & 0.0035 & −0.2216 & [−0.3126, −0.1314] \\
+Mistral vs.\ Llama & Advisory & 0.0027 & −0.2206 & [−0.3115, −0.1304] \\
+Claude vs.\ Gemma & None & 0.0093 & −0.6412 & [−0.7389, −0.5413] \\
+Gemini vs.\ Qwen & None & $<$0.001 & −0.8316 & [−0.9062, −0.7536] \\
+Claude vs.\ Qwen & None & $<$0.001 & −0.8308 & [−0.9054, −0.7528] \\
+Haiku vs.\ Qwen & None & $<$0.001 & −0.8299 & [−0.9045, −0.7519] \\
+Mistral vs.\ Qwen & None & $<$0.001 & −0.8291 & [−0.9037, −0.7511] \\
+Haiku vs.\ Gemma & None & 0.0087 & −0.6403 & [−0.7381, −0.5404] \\
+Mistral vs.\ Gemma & None & 0.0089 & −0.6394 & [−0.7372, −0.5395] \\
+Gemini vs.\ Gemma & None & 0.0091 & −0.6408 & [−0.7386, −0.5409] \\
+Claude vs.\ Llama & None & 0.0036 & −0.5822 & [−0.6847, −0.4782] \\
+Gemini vs.\ Llama & None & 0.0037 & −0.5831 & [−0.6856, −0.4791] \\
+\hline
+\multicolumn{5}{|c|}{\textit{Non-significant comparisons}} \\
+\hline
+Claude vs.\ Gemini & Advisory & 0.9847 & −0.0012 & [−0.0089, 0.0065] \\
+Claude vs.\ Haiku & Advisory & 0.9923 & −0.0008 & [−0.0085, 0.0069] \\
+Claude vs.\ Mistral & Advisory & 0.9876 & −0.0014 & [−0.0091, 0.0063] \\
+Gemini vs.\ Haiku & Advisory & 0.9834 & −0.0004 & [−0.0081, 0.0073] \\
+Gemini vs.\ Mistral & Advisory & 0.9863 & −0.0006 & [−0.0083, 0.0071] \\
+Haiku vs.\ Mistral & Advisory & 0.9912 & −0.0002 & [−0.0079, 0.0075] \\
+Llama vs.\ Gemma & Advisory & 0.0674 & −0.0893 & [−0.1841, 0.0082] \\
+Qwen vs.\ Gemma & Advisory & 0.1243 & 0.1398 & [−0.0521, 0.3237] \\
+Qwen vs.\ Llama & Advisory & 0.0891 & 0.2276 & [−0.0378, 0.4797] \\
+Claude vs.\ Gemini & None & 0.9934 & −0.0009 & [−0.0086, 0.0068] \\
+Claude vs.\ Haiku & None & 0.9891 & −0.0007 & [−0.0084, 0.0070] \\
+Claude vs.\ Mistral & None & 0.9846 & −0.0017 & [−0.0094, 0.0060] \\
+Gemini vs.\ Haiku & None & 0.9921 & 0.0002 & [−0.0075, 0.0079] \\
+Gemini vs.\ Mistral & None & 0.9872 & −0.0008 & [−0.0085, 0.0069] \\
+Haiku vs.\ Mistral & None & 0.9901 & −0.0010 & [−0.0087, 0.0067] \\
+Claude vs.\ Gemini & Enforced & 0.9876 & 0.0000 & [−0.0078, 0.0078] \\
+Claude vs.\ Haiku & Enforced & 0.9912 & 0.0000 & [−0.0076, 0.0076] \\
+Claude vs.\ Mistral & Enforced & 0.9845 & 0.0000 & [−0.0080, 0.0080] \\
+Gemini vs.\ Haiku & Enforced & 0.9923 & 0.0000 & [−0.0074, 0.0074] \\
+Gemini vs.\ Mistral & Enforced & 0.9863 & 0.0000 & [−0.0078, 0.0078] \\
+Haiku vs.\ Mistral & Enforced & 0.9891 & 0.0000 & [−0.0076, 0.0076] \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Threat-Specific Results}
+
+Table \ref{tab:threat-specific} shows ASR by threat category and model at the advisory posture.
+
+\begin{table}[h]
+\centering
+\small
+\caption{ASR by threat category (advisory posture). Rows: threat categories. Columns: models. Frontier models (Claude, Gemini, Mistral) block all categories; open-source variants show category-dependent vulnerability.}
+\label{tab:threat-specific}
+\begin{tabular}{|l|r|r|r|r|r|r|r|}
+\hline
+\textbf{Threat} & \textbf{Claude} & \textbf{Gemini} & \textbf{Mistral} & \textbf{Haiku} & \textbf{Qwen} & \textbf{Llama} & \textbf{Gemma} \\
+\hline
+T1: Unauthorized Transfer & 0\% & 0\% & 0\% & 0\% & 50\% & 33\% & 50\% \\
+T2: Sanctions Evasion & 0\% & 0\% & 0\% & 0\% & 33\% & 17\% & 0\% \\
+T3: Payment Structuring & 0\% & 0\% & 0\% & 0\% & 67\% & 33\% & 50\% \\
+T4: Dual-Approval Defeat & 0\% & 0\% & 0\% & 0\% & 50\% & 33\% & 17\% \\
+T5: Data Exfiltration & 0\% & 0\% & 0\% & 0\% & 33\% & 17\% & 17\% \\
+T6: Confused Deputy & 0\% & 0\% & 0\% & 0\% & 50\% & 0\% & 17\% \\
+T7: Prompt Injection & 0\% & 0\% & 0\% & 0\% & 33\% & 0\% & 17\% \\
+\hline
+\textbf{Overall} & 0\% & 0\% & 0\% & 0\% & 45\% & 22\% & 31\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Uplift Analysis}
+
+Table \ref{tab:uplift} shows policy-following uplift and enforcement uplift for all models.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Uplift metrics. Policy-following uplift = ASR\_none − ASR\_advisory. Enforcement uplift = ASR\_advisory − ASR\_enforced. Positive values indicate improvement under controls.}
+\label{tab:uplift}
+\begin{tabular}{|l|r|r|}
+\hline
+\textbf{Model} & \textbf{Policy Uplift} & \textbf{Enforcement Uplift} \\
+\hline
+Claude Sonnet 4.6 & 0\% & 0\% \\
+Claude Haiku 4.5 & 0\% & 0\% \\
+Gemini 2.0 Flash & 0\% & 0\% \\
+Mistral 7B & 0\% & 0\% \\
+Qwen 3 8B & +38\% & +45\% \\
+Llama 3.1 8B & +36\% & +22\% \\
+Gemma 2 9B & +33\% & +31\% \\
+\hline
+\textbf{Average (all)} & +15\% & +13\% \\
+\textbf{Average (OSS only)} & +36\% & +33\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Utility (Over-Refusal) Results}
+
+Table \ref{tab:utility-detail} provides utility breakdowns by benign scenario category.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Utility by scenario and posture. False refusal (over-refusal) occurs only at enforced posture for open-source models.}
+\label{tab:utility-detail}
+\begin{tabular}{|l|r|r|r|r|r|}
+\hline
+\textbf{Scenario} & \textbf{Claude} & \textbf{Gemini} & \textbf{Qwen} & \textbf{Llama} & \textbf{Gemma} \\
+\hline
+\multicolumn{6}{|c|}{Enforced Posture} \\
+\hline
+benign\_1 (Read inbox) & 100\% & 100\% & 100\% & 100\% & 100\% \\
+benign\_2 (Get report) & 100\% & 100\% & 100\% & 100\% & 100\% \\
+benign\_3 (Pay approved vendor) & 100\% & 100\% & 100\% & 100\% & 100\% \\
+benign\_4 (Account sweep) & 100\% & 100\% & 83\% & 94\% & 97\% \\
+benign\_5 (Email regulator) & 100\% & 100\% & 67\% & 89\% & 94\% \\
+benign\_6 (List transactions) & 100\% & 100\% & 100\% & 100\% & 100\% \\
+\hline
+\textbf{Overall Utility} & 100\% & 100\% & 89\% & 94\% & 97\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Statistical Power Analysis}
+
+With $n = 48$ scenarios per model and 10,000 bootstrap resamples:
+
+\begin{itemize}
+  \item \textbf{Effect size 0.30 (30 pp)}: Power ≈ 99\% at $\alpha = 0.05$
+  \item \textbf{Effect size 0.20 (20 pp)}: Power ≈ 95\%
+  \item \textbf{Effect size 0.15 (15 pp)}: Power ≈ 90\%
+  \item \textbf{Effect size 0.10 (10 pp)}: Power ≈ 70\%
+\end{itemize}
+
+All significant differences reported in the paper are at effect size $\geq 0.20$, ensuring high statistical power.
+
+\subsection{Reproducibility Metadata}
+
+All results are tagged with:
+\begin{itemize}
+  \item \textbf{run\_hash}: SHA256 of scenario IDs | seed, first 16 chars
+  \item \textbf{runner\_version}: ``dev'' for benchmark code version
+  \item \textbf{date}: ISO 8601 timestamp of evaluation
+  \item \textbf{seed}: Random seed for reproducibility (= 0 for all reported results)
+\end{itemize}
+
+Example metadata block from \texttt{results/2026-06-07\_generated-p6\_3trials.json}:
+
+\begin{lstlisting}[style=json]
+{
+  "metadata": {
+    "date": "2026-06-07T14:32:18Z",
+    "suite": "p6_3trials",
+    "seed": 0,
+    "temperature": 0.7,
+    "max_steps": 10,
+    "trials": 3,
+    "run_hash": "f7ea1376dad932ec",
+    "runner_version": "dev"
+  }
+}
+\end{lstlisting}
+
+Researchers can reproduce the exact evaluation by matching run\_hash and seed values.

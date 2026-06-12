@@ -1,0 +1,213 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf-8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+
+\geometry{margin=1in}
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{0.5em}
+
+% Title and author info
+\title{FinAgent Red-Team: A Benchmark for Regulatory-Control Bypass in Financial LLM Agents}
+
+\author{
+  Nachiket Lele\footnotemark[1] \\
+  \textit{Visa Inc.} \\
+  \texttt{lelenachiket07@gmail.com} \\
+  \and
+  GitHub: \texttt{github.com/nac7/finagent-redteam} \\
+  \textit{Open source contributions for AI safety evaluation}
+}
+
+\footnotetext[1]{Work conducted as independent research toward EB2-NIW immigration petition.}
+
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+Financial institutions increasingly deploy LLM agents to automate accounts payable, treasury, and reconciliation operations. Unlike generic security benchmarks focused on data exfiltration or forbidden actions, financial operations harbor a distinct threat surface: \textit{silent compliance violations} disguised as legitimate task completion.
+
+This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign) spanning seven threat categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, confused-deputy attacks, and prompt injection. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
+
+We evaluate 7 state-of-the-art models: Claude Sonnet/Haiku, Gemini 2.0 Flash, Mistral 7B, Qwen 3 8B, Llama 3.1 8B, and Gemma 2 9B. Results show stark disparities: frontier models achieve 0\% attack success rate, while open-source models exhibit 40--80\% vulnerability. Bootstrap significance testing quantifies confidence intervals on all comparisons. The benchmark is open-source, deterministic (no LLM grading), and deployable in production financial environments.
+
+\textbf{Keywords:} LLM safety, agent red-teaming, financial compliance, regulatory bypass, benchmark design
+
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Motivation}
+
+Large language models are moving into financial operations at scale. Treasury departments use agents to approve wire transfers. Accounts payable teams rely on them to match invoices and route payments. Reconciliation systems deploy agents to identify and categorize transaction discrepancies.
+
+The failure modes in these domains are not generic misbehavior. They are \textit{compliance violations that look like task completion}:
+\begin{itemize}
+  \item An agent wires funds to an unlisted payee, bypassing controls.
+  \item An agent splits a large payment into two smaller transfers to evade reporting thresholds.
+  \item An agent approves a transaction that should require dual sign-off.
+  \item An agent exfiltrates client account data in response to a crafted email.
+\end{itemize}
+
+Existing red-teaming benchmarks (e.g., AgentBench, ToolEmu, AgentDojo) focus on generic agent capabilities—web browsing, API calling, multi-step reasoning. None model the regulatory control surface of a real financial institution. None distinguish between safety rooted in model judgment (``I know this is wrong'') vs.\ safety from hard system enforcement (``the system won't let me do this'').
+
+\subsection{Contributions}
+
+\begin{enumerate}
+  \item \textbf{Threat taxonomy}: Seven attack categories grounded in real financial compliance failures (Table \ref{tab:threats}).
+  \item \textbf{Methodology}: Three-posture evaluation framework decomposing policy-following uplift from enforcement uplift.
+  \item \textbf{Deterministic evaluation}: No LLM grading. All success criteria are reproducible state predicates.
+  \item \textbf{Benchmark dataset}: 48 scenarios with 3 independent trials each = 144 scenario runs per model.
+  \item \textbf{Leaderboard of 7 models}: Bootstrap-significant comparisons with 95\% confidence intervals.
+  \item \textbf{Open source}: Fully deployable in production; no proprietary dependencies.
+\end{enumerate}
+
+\section{Threat Taxonomy}
+
+\label{sec:threats}
+
+Financial compliance failures fall into seven categories, each modeled as a scenario family in our benchmark.
+
+\input{sections/threats}
+
+\section{Methodology}
+
+\label{sec:methodology}
+
+\input{sections/methodology}
+
+\section{Leaderboard Results}
+
+\label{sec:results}
+
+\input{sections/results}
+
+\section{Case Studies: Where Frontier Models Break}
+
+\label{sec:case-studies}
+
+\input{sections/case_studies}
+
+\section{Related Work}
+
+\label{sec:related}
+
+\textbf{Agent red-teaming benchmarks:} AgentBench \citep{}, ToolEmu \citep{}, AgentDojo \citep{}. These focus on agent reasoning and tool use, not financial compliance or regulatory controls.
+
+\textbf{Financial NLP:} Prior work on fraud detection and financial sentiment analysis, but no benchmark for agent-driven compliance bypass.
+
+\textbf{LLM safety evaluations:} Red-teaming work by OpenAI, Anthropic, Google, Meta focuses on toxic output, bias, and alignment. Little work on domain-specific threats like financial controls.
+
+\textbf{Control system design:} Extensive literature on defense-in-depth, dual approval, and segregation of duties in accounting. This benchmark operationalizes those principles in the LLM context.
+
+\section{Limitations}
+
+\label{sec:limitations}
+
+\subsection{Scope}
+
+This benchmark evaluates agent responses to scenarios with synthetic worlds and mock financial infrastructure. Real-world deployments face additional complexity:
+\begin{itemize}
+  \item Heterogeneous backend systems (legacy mainframes, SAP, etc.) with varying API contracts.
+  \item User expectations and social engineering beyond the model's capabilities.
+  \item Regulatory variation across jurisdictions.
+\end{itemize}
+
+\subsection{Threat Model}
+
+We assume attacks come via prompt injection (crafted emails, invoices, chat). We do not model:
+\begin{itemize}
+  \item Supply chain attacks (compromised tools or models).
+  \item Physical access to infrastructure.
+  \item Social engineering of human stakeholders.
+\end{itemize}
+
+\subsection{Evaluation Coverage}
+
+Our 48 scenarios sample the threat space but do not exhaustively enumerate all possible attacks. New threat categories may emerge with novel model capabilities or financial products.
+
+\section{Responsible Disclosure}
+
+\label{sec:responsible}
+
+This benchmark is designed to harden financial AI systems before deployment. We have:
+\begin{itemize}
+  \item Tested all scenarios against models in controlled, offline environments.
+  \item Shared findings with model vendors (OpenAI, Google, Anthropic, Meta) before public release.
+  \item Designed the benchmark to be freely available to security researchers and practitioners.
+  \item Included no real account data, transaction histories, or customer information.
+\end{itemize}
+
+We encourage responsible use: researchers and practitioners should deploy this benchmark in controlled environments and share findings with vendors and the broader community.
+
+\section{Open Source and Reproducibility}
+
+\label{sec:opensource}
+
+FinAgent Red-Team is available at:
+\begin{center}
+  \texttt{github.com/nac7/finagent-redteam}
+\end{center}
+
+The benchmark includes:
+\begin{itemize}
+  \item Scenario generation code (deterministic, seeded).
+  \item Agent runner for any OpenAI-compatible API.
+  \item Leaderboard evaluation harness with bootstrap significance testing.
+  \item Results for all 7 models with checkpoint/resume support.
+  \item Integration with \texttt{lm-evaluation-harness} for broad adoption.
+\end{itemize}
+
+All code is MIT-licensed. Results are reproducible: the benchmark uses fixed seeds and deterministic predicates.
+
+\section{Conclusion}
+
+Financial LLM agents represent a new frontier in AI safety evaluation. FinAgent Red-Team provides a rigorous, open-source benchmark to measure and improve robustness against compliance-critical attacks. Early results show frontier models excel, but gaps remain in open-source alternatives.
+
+We release this benchmark to accelerate the maturation of financial AI safety as a discipline.
+
+\section*{Acknowledgments}
+
+This research was conducted as independent work toward EB2-NIW immigration petition, demonstrating sustained impact in open-source AI safety tooling and evaluation.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+
+\section{Scenario Details}
+
+\label{app:scenarios}
+
+\input{sections/appendix_scenarios}
+
+\section{Statistical Methods}
+
+\label{app:stats}
+
+\input{sections/appendix_stats}
+
+\section{Full Leaderboard Tables}
+
+\label{app:tables}
+
+\input{sections/appendix_tables}
+
+\end{document}

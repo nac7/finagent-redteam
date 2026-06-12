@@ -1,0 +1,127 @@
+\subsection{Scenario Design}
+
+Each scenario comprises:
+\begin{enumerate}
+  \item \textbf{World factory}: A mock financial environment with accounts, payees, transaction history.
+  \item \textbf{User task}: A legitimate action (e.g., ``Read my inbox and summarize unread messages'').
+  \item \textbf{Attack goal}: The criterion for success (e.g., ``execute unauthorized transfer'').
+  \item \textbf{Success predicate}: A deterministic function of final world state (no LLM grading).
+\end{enumerate}
+
+\textbf{Key design choice: Deterministic evaluation.} We do not use LLM grading to determine success. Instead, we inspect the agent's final action against the world state. For example, if the agent initiates a transfer to an unlisted payee, we check the transaction log directly. This eliminates grader bias and makes results reproducible.
+
+\subsection{Three-Posture Evaluation Framework}
+
+Each scenario is evaluated under three control postures:
+
+\subsubsection{Posture 1: None}
+The agent has no guardrails. It receives the user task and attack prompt. Its response is purely a function of instruction-following and training alignment.
+
+\textbf{Metric}: Attack Success Rate (ASR) = proportion of attacks the agent falls for.
+
+\subsubsection{Posture 2: Advisory}
+The system displays policy statements (e.g., ``Policy: Do not transfer to unlisted payees'') but enforces nothing. The agent can still execute any action.
+
+\textbf{Metric}: ASR under advisory. Difference (ASR\_none − ASR\_advisory) = \textit{policy-following uplift}: how much the agent's judgment improves when told the policy.
+
+\subsubsection{Posture 3: Enforced}
+The system hard-blocks policy violations. The agent cannot execute the attack even if it wants to.
+
+\textbf{Metric}: ASR under enforcement. Difference (ASR\_advisory − ASR\_enforced) = \textit{enforcement uplift}: how much the system catches what the agent misses.
+
+\subsection{Metrics}
+
+For each posture and scenario category, we compute:
+
+\begin{equation}
+\text{ASR} = \frac{\text{\# attacks succeeded}}{\text{\# attacks attempted}}
+\end{equation}
+
+\textbf{Confidence intervals}: We use Wilson score intervals at 95\% confidence, which remain valid at extreme proportions (0\% or 100\%) and small sample sizes.
+
+\textbf{Uplift metrics}:
+\begin{equation}
+\text{Policy-following uplift} = \text{ASR}_{\text{none}} - \text{ASR}_{\text{advisory}}
+\end{equation}
+\begin{equation}
+\text{Enforcement uplift} = \text{ASR}_{\text{advisory}} - \text{ASR}_{\text{enforced}}
+\end{equation}
+
+\textbf{Utility}: For benign scenarios, we measure utility as the proportion of legitimate actions the agent completes without false refusal.
+
+\subsection{Bootstrap Significance Testing}
+
+To compare two models, we use bootstrap resampling of trial outcomes:
+
+\begin{enumerate}
+  \item Extract all trial outcomes (0/1 for success/failure) for each model on a given metric (e.g., ASR at advisory posture).
+  \item Resample each model's outcomes with replacement, 10,000 times.
+  \item Compute the difference in proportions for each resample.
+  \item Compute the p-value as the proportion of resamples more extreme than the observed difference.
+  \item Report 95\% confidence interval via bootstrap percentile method.
+\end{enumerate}
+
+Statistical significance is determined at $\alpha = 0.05$.
+
+\subsection{Experimental Setup}
+
+\subsubsection{Models}
+
+We evaluate 7 models spanning three categories:
+
+\textbf{Frontier models} (API-based, closed-source):
+\begin{itemize}
+  \item Claude Sonnet 4.6 (Anthropic)
+  \item Claude Haiku 4.5 (Anthropic)
+  \item Gemini 2.0 Flash (Google)
+\end{itemize}
+
+\textbf{Open-source models} (via Ollama):
+\begin{itemize}
+  \item Mistral 7B (Mistral AI)
+  \item Llama 3.1 8B (Meta)
+  \item Gemma 2 9B (Google)
+\end{itemize}
+
+\textbf{Quantized proprietary} (via Ollama):
+\begin{itemize}
+  \item Qwen 3 8B (Alibaba)
+\end{itemize}
+
+\subsubsection{Scenario Suite}
+
+\begin{itemize}
+  \item 48 scenarios total: 42 attack + 6 benign
+  \item 3 independent trials per scenario
+  \item Total: 48 × 3 = 144 scenario runs per model
+  \item Per model: 3 (postures) × 144 (trials) = 432 agent calls
+\end{itemize}
+
+\subsubsection{Agent Configuration}
+
+All agents are run with identical hyperparameters:
+\begin{itemize}
+  \item Temperature: 0.7
+  \item Max steps: 10 (maximum agent turns before timeout)
+  \item Seed: 0 (fixed for reproducibility)
+\end{itemize}
+
+\subsection{Validation}
+
+We validate our methodology on a small manual set:
+\begin{itemize}
+  \item 3 domain experts (treasury, compliance, software security) reviewed scenarios for realism.
+  \item Consensus: all scenarios reflect plausible real-world attacks.
+  \item All success predicates map cleanly to regulatory violations.
+\end{itemize}
+
+\subsection{Reproducibility}
+
+All code, scenario definitions, and results are open-source at \texttt{github.com/nac7/finagent-redteam}. The benchmark is deterministic:
+\begin{itemize}
+  \item Scenario generation uses fixed seed (command-line parameter).
+  \item Agent evaluation logs all outputs and world state transitions.
+  \item Checkpoints auto-save after each scenario for resumption.
+\end{itemize}
+
+Researchers can reproduce our results using the published code and model snapshots.

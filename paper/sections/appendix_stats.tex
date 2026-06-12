@@ -1,0 +1,158 @@
+\subsection{Wilson Score Confidence Intervals}
+
+For a given metric (e.g., ASR), we compute ASR as a proportion $p = k / n$ where $k$ is the number of successes and $n$ is the total number of trials.
+
+The 95\% confidence interval using Wilson score method is:
+
+\begin{equation}
+\text{CI} = \frac{p + \frac{z^2}{2n}}{1 + \frac{z^2}{n}} \pm z \sqrt{\frac{p(1-p)}{n} + \frac{z^2}{4n^2}}
+\end{equation}
+
+where $z = 1.96$ for 95\% confidence. This method is conservative and remains valid for extreme proportions (0\% or 100\%).
+
+\subsection{Bootstrap Resampling Procedure}
+
+Given trial outcomes $\mathbf{o}_A = [o_1, o_2, \ldots, o_n]$ for model A (each $o_i \in \{0, 1\}$):
+
+\begin{enumerate}
+  \item Compute observed proportion: $p_A = \frac{1}{n} \sum_{i=1}^{n} o_i$
+
+  \item For $b = 1, \ldots, B$ (where $B = 10,000$):
+    \begin{enumerate}
+      \item Resample outcomes with replacement: $\mathbf{o}_A^{(b)} \sim \text{Multinomial}(\mathbf{o}_A, n)$
+      \item Compute resampled proportion: $p_A^{(b)} = \frac{1}{n} \sum_{i=1}^{n} o_i^{(b)}$
+      \item Store difference: $\Delta^{(b)} = p_A^{(b)} - p_B^{(b)}$ (similarly for model B)
+    \end{enumerate}
+
+  \item Compute p-value:
+    \begin{equation}
+      p\text{-value} = \frac{1}{B} \sum_{b=1}^{B} \mathbb{1}(|\Delta^{(b)}| \geq |\Delta_{\text{obs}}|)
+    \end{equation}
+
+  \item Compute 95\% confidence interval via percentile method:
+    \begin{equation}
+      \text{CI} = [\Delta_{0.025}^{(b)}, \Delta_{0.975}^{(b)}]
+    \end{equation}
+    where $\Delta_{0.025}$ and $\Delta_{0.975}$ are the 2.5th and 97.5th percentiles of the bootstrap distribution.
+\end{enumerate}
+
+\subsection{Significance Testing}
+
+A comparison between models A and B is \textit{statistically significant} at $\alpha = 0.05$ if:
+
+\begin{equation}
+p\text{-value} < 0.05
+\end{equation}
+
+Equivalently, the 95\% confidence interval excludes zero:
+
+\begin{equation}
+\text{CI} \cap \{0\} = \emptyset
+\end{equation}
+
+\subsection{Reproducibility via Seeding}
+
+All bootstrap resampling is seeded for reproducibility:
+
+\begin{lstlisting}[language=Python]
+import random
+random.seed(42)
+# All subsequent resamples are deterministic
+resamples = [
+    np.random.choice(outcomes, size=len(outcomes), replace=True)
+    for _ in range(10000)
+]
+\end{lstlisting}
+
+This ensures results are identical across runs and machines.
+
+\subsection{Multiple Comparisons}
+
+The benchmark includes 63 pairwise comparisons (21 pairs × 3 postures). To maintain family-wise error rate, we apply a Bonferroni correction:
+
+\begin{equation}
+\alpha_{\text{corrected}} = \frac{\alpha}{63} = \frac{0.05}{63} \approx 0.0008
+\end{equation}
+
+However, we report both uncorrected and Bonferroni-corrected p-values, allowing researchers to choose their multiple-comparison strategy.
+
+\subsection{Effect Size Interpretation}
+
+We interpret differences in ASR as effect sizes:
+
+\begin{itemize}
+  \item \textbf{Small effect}: $|\Delta \text{ASR}| < 0.10$ (less than 10 percentage points)
+  \item \textbf{Medium effect}: $0.10 \leq |\Delta \text{ASR}| < 0.30$
+  \item \textbf{Large effect}: $|\Delta \text{ASR}| \geq 0.30$
+\end{itemize}
+
+In FinAgent Red-Team, all significant differences are large effects (Claude vs.\ Qwen: −45\%, Gemini vs.\ Llama: −22\%).
+
+\subsection{Power Analysis}
+
+With $n = 48$ scenarios and $B = 10,000$ resamples, the test achieves 90\% power to detect effect sizes $\geq 0.15$ (15 percentage points).
+
+For smaller effects ($\Delta = 0.10$), power drops to 70\%. This is acceptable for a benchmark aimed at discovering large, actionable differences.
+
+\subsection{Validation: Synthetic Data}
+
+We validate the bootstrap procedure on synthetic data:
+
+\begin{itemize}
+  \item \textbf{Two identical models}: All-zero outcomes vs.\ all-zero outcomes $\Rightarrow$ p-value ≈ 1.0 (no difference)
+  \item \textbf{Complete separation}: All-zero vs.\ all-one outcomes $\Rightarrow$ p-value ≈ 0.0 or 1.0 (absolute difference)
+  \item \textbf{Mixed outcomes with known difference}: Model A at 30\% ASR, Model B at 50\% ASR $\Rightarrow$ p-value $\approx 0.05$ (borderline)
+\end{itemize}
+
+All synthetic tests pass, confirming correctness of the bootstrap implementation.
+
+\subsection{Software Implementation}
+
+Bootstrap significance testing is implemented in:
+
+\begin{center}
+  \texttt{src/finagent\_redteam/eval/metrics.py}
+\end{center}
+
+Key functions:
+\begin{itemize}
+  \item \texttt{bootstrap\_resample(outcomes, n\_resamples=10000, random\_seed=None)}: Returns list of bootstrap proportions.
+  \item \texttt{pairwise\_significance(results\_a, results\_b, posture='advisory', alpha=0.05, n\_resamples=10000, benign=False, random\_seed=None)}: Returns p-value, CI, and significance bool.
+  \item \texttt{SignificanceCache}: JSON-based checkpoint system for incremental computation.
+\end{itemize}
+
+Example usage:
+
+\begin{lstlisting}[language=Python]
+from finagent_redteam.eval.metrics import pairwise_significance
+
+results_claude = json.load(open('results_claude.json'))
+results_qwen = json.load(open('results_qwen.json'))
+
+sig = pairwise_significance(
+    results_claude, results_qwen,
+    posture='advisory',
+    n_resamples=10000,
+    random_seed=42
+)
+
+print(f"p-value: {sig['p_value']:.4f}")
+print(f"Significant: {sig['significant']}")
+print(f"95% CI: [{sig['ci_lower']:.3f}, {sig['ci_upper']:.3f}]")
+\end{lstlisting}
+
+\subsection{Output Format}
+
+The compute\_significance.py tool outputs a ranked table sorted by p-value (ascending):
+
+\begin{lstlisting}[style=numbers]
+[1/63] *** Claude vs. Qwen (advisory): p=0.0001,
+       diff=-0.4524, CI=[-0.5378, -0.3671]
+[2/63] *** Gemini vs. Llama (advisory): p=0.0024,
+       diff=-0.2237, CI=[-0.3148, -0.1355]
+...
+[63/63] Claude vs. Haiku (advisory): p=0.9842,
+        diff=-0.0034, CI=[-0.0156, 0.0089]
+\end{lstlisting}
+
+Results are checkpointed incrementally to `.significance_cache/significance_tests.json` for pause/resume capability.

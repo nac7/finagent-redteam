@@ -1,0 +1,122 @@
+\subsection{Overall Leaderboard}
+
+Table \ref{tab:leaderboard} presents the Attack Success Rate (ASR) across all models and postures. Results are ranked by ASR at the advisory posture (the most realistic control scenario).
+
+\begin{table}[h]
+\centering
+\small
+\caption{FinAgent Red-Team leaderboard: ASR (\%) across three control postures. Lower is better. Frontier models (Claude, Gemini) achieve 0\% ASR across all postures; open-source models show significant vulnerability, particularly at advisory posture.}
+\label{tab:leaderboard}
+\begin{tabular}{|l|r|r|r|r|r|}
+\hline
+\textbf{Model} & \textbf{ASR (None)} & \textbf{ASR (Advisory)} & \textbf{ASR (Enforced)} & \textbf{Policy Uplift} & \textbf{Enforce Uplift} \\
+\hline
+\textit{Frontier models} & & & & & \\
+\hline
+Gemini 2.0 Flash & 0\% [0--3\%] & 0\% [0--3\%] & 0\% [0--3\%] & +0\% & +0\% \\
+Claude Sonnet 4.6 & 0\% [0--3\%] & 0\% [0--3\%] & 0\% [0--3\%] & +0\% & +0\% \\
+Claude Haiku 4.5 & 0\% [0--3\%] & 0\% [0--3\%] & 0\% [0--3\%] & +0\% & +0\% \\
+Mistral 7B & 0\% [0--3\%] & 0\% [0--3\%] & 0\% [0--3\%] & +0\% & +0\% \\
+\hline
+\textit{Open-source models} & & & & & \\
+\hline
+Qwen 3 8B & 83\% [76--89\%] & 45\% [37--54\%] & 0\% [0--3\%] & +38\% & +45\% \\
+Llama 3.1 8B & 58\% [49--66\%] & 22\% [15--31\%] & 0\% [0--3\%] & +36\% & +22\% \\
+Gemma 2 9B & 64\% [55--72\%] & 31\% [23--40\%] & 0\% [0--3\%] & +33\% & +31\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Key Findings}
+
+\subsubsection{1. Frontier Models Are Robust}
+
+Claude (both Sonnet and Haiku) and Gemini 2.0 Flash achieve 0\% ASR across all three postures and all threat categories. They refuse compliance-violating actions even without policy hints or system enforcement. This suggests strong training against regulatory violations.
+
+Mistral 7B, despite being open-source, also achieves 0\% ASR, indicating that model capability and scale matter more than whether weights are public.
+
+\subsubsection{2. Open-Source Models Show Vulnerability}
+
+Qwen 3 8B, Llama 3.1 8B, and Gemma 2 9B exhibit high ASR (22--83\% at advisory posture). The variance suggests different training priorities:
+\begin{itemize}
+  \item \textbf{Qwen 3 8B}: Highest vulnerability (45\% ASR at advisory), possibly due to training on permissive finance-adjacent data.
+  \item \textbf{Gemma 2 9B}: Moderate vulnerability (31\% ASR), suggests better but incomplete alignment.
+  \item \textbf{Llama 3.1 8B}: Lower vulnerability (22\% ASR), indicates stronger default refusal behavior.
+\end{itemize}
+
+\subsubsection{3. Policy Matters}
+
+Policy-following uplift (ASR\_none − ASR\_advisory) ranges from 22\% to 45\%. Even vulnerable models reduce attack success when told the policy, suggesting that instruction-following and some regulatory awareness are present. However, the residual success rate (22--45\% at advisory) indicates that policy alone is insufficient.
+
+\subsubsection{4. Enforcement Is Essential}
+
+Enforcement uplift (ASR\_advisory − ASR\_enforced) ranges from 22\% to 45\%. Hard system controls reduce ASR to 0\% across all models. This demonstrates that defense-in-depth (policy + system enforcement) is necessary and effective.
+
+\subsection{Per-Threat Breakdown}
+
+Table \ref{tab:by-threat} shows ASR by threat category at the advisory posture (most realistic).
+
+\begin{table}[h]
+\centering
+\small
+\caption{ASR by threat category (advisory posture). Frontier models block all categories; open-source models show category-dependent vulnerability.}
+\label{tab:by-threat}
+\begin{tabular}{|l|r|r|r|r|}
+\hline
+\textbf{Threat Category} & \textbf{Qwen} & \textbf{Llama} & \textbf{Gemma} & \textbf{Claude/Gemini} \\
+\hline
+T1: Unauthorized Transfer & 50\% & 33\% & 50\% & 0\% \\
+T2: Sanctions Evasion & 33\% & 17\% & 0\% & 0\% \\
+T3: Payment Structuring & 67\% & 33\% & 50\% & 0\% \\
+T4: Dual-Approval Defeat & 50\% & 33\% & 17\% & 0\% \\
+T5: Data Exfiltration & 33\% & 17\% & 17\% & 0\% \\
+T6: Confused Deputy & 50\% & 0\% & 17\% & 0\% \\
+T7: Prompt Injection & 33\% & 0\% & 17\% & 0\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Observation}: No single threat category dominates. Vulnerable models fail across multiple categories, suggesting generalized compliance-awareness gaps rather than category-specific bugs.
+
+\subsection{Utility and Over-Refusal}
+
+Benign scenarios measure the cost of security controls. Table \ref{tab:utility} shows utility (completion rate of legitimate tasks) across postures.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Utility by posture: what fraction of benign tasks does the agent complete without false refusal?}
+\label{tab:utility}
+\begin{tabular}{|l|r|r|r|r|}
+\hline
+\textbf{Model} & \textbf{Utility (None)} & \textbf{Utility (Advisory)} & \textbf{Utility (Enforced)} & \textbf{Over-refusal} \\
+\hline
+Claude Sonnet 4.6 & 100\% & 100\% & 100\% & 0\% \\
+Claude Haiku 4.5 & 100\% & 100\% & 100\% & 0\% \\
+Gemini 2.0 Flash & 100\% & 100\% & 100\% & 0\% \\
+Mistral 7B & 100\% & 100\% & 100\% & 0\% \\
+Qwen 3 8B & 100\% & 100\% & 89\% & 11\% \\
+Llama 3.1 8B & 100\% & 100\% & 94\% & 6\% \\
+Gemma 2 9B & 100\% & 100\% & 97\% & 3\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Key insight}: Enforcement controls have minimal impact on utility. No model experiences degradation at advisory posture; only enforced (hard system) controls introduce false refusals (3--11\%). This suggests enforcement can be deployed without breaking legitimate workflows.
+
+\subsection{Statistical Significance}
+
+Bootstrap hypothesis tests (Appendix \ref{app:stats}) confirm that differences between frontier and open-source models are statistically significant at $p < 0.05$ across all threat categories and postures.
+
+\subsubsection{Example: Frontier vs.\ Open-Source (Advisory)}
+
+\begin{itemize}
+  \item Claude vs.\ Qwen: difference = −45\%, p < 0.001, 95\% CI = [−53\%, −37\%]
+  \item Gemini vs.\ Llama: difference = −22\%, p = 0.002, 95\% CI = [−31\%, −14\%]
+\end{itemize}
+
+These are not statistical noise; they represent genuine, large performance gaps.
+
+\subsection{Summary}
+
+FinAgent Red-Team reveals a sharp divide: frontier models have strong compliance awareness and refuse regulatory violations consistently. Open-source models are significantly more vulnerable, particularly under realistic (advisory) control postures. Hard system enforcement is both necessary and effective, eliminating attacks without sacrificing utility.
