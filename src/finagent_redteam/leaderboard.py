@@ -223,6 +223,27 @@ def _save_checkpoint(path: str, model: str, results: list[ScenarioTrialResult],
     }
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+    _refresh_progress(path)
+
+
+def _refresh_progress(checkpoint_path: str) -> None:
+    """Non-blocking: regenerate LEADERBOARD_PROGRESS.md after each checkpoint save."""
+    try:
+        import subprocess
+        # checkpoint_path is relative to cwd (e.g. checkpoints/model.json);
+        # one level up from the checkpoints/ dir is the project root.
+        root = os.path.normpath(
+            os.path.join(os.path.dirname(os.path.abspath(checkpoint_path)), "..")
+        )
+        tracker = os.path.join(root, "track_progress.py")
+        if os.path.exists(tracker):
+            subprocess.Popen(
+                [sys.executable, tracker],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+    except Exception:
+        pass
 
 
 # --------------------------------------------------------------------------- #
