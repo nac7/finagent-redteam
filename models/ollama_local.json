@@ -23,15 +23,25 @@
       "base_url": "http://localhost:11434/v1",
       "temperature": 0.7,
       "_pulled": true,
-      "_disk_gb": 4.1
+      "_disk_gb": 4.1,
+      "_note": "EXCLUDED: does not emit structured tool_calls (writes prose pseudo-code); 0% utility. Replaced by mistral-nemo."
     },
     {
-      "name": "gemma3:9b",
+      "name": "mistral-nemo",
+      "base_url": "http://localhost:11434/v1",
+      "temperature": 0.7,
+      "_pulled": true,
+      "_disk_gb": 7.1,
+      "_note": "Tool-capable Mistral replacement for mistral:7b (12B, native function calling)."
+    },
+    {
+      "name": "gemma2:9b",
       "base_url": "http://localhost:11434/v1",
       "temperature": 0.7,
       "_pulled": false,
-      "_disk_gb": 5.9,
-      "_pull": "ollama pull gemma3:9b"
+      "_disk_gb": 5.4,
+      "_excluded": true,
+      "_note": "EXCLUDED: entire Gemma family (gemma2 AND gemma3, all sizes) returns HTTP 400 'does not support tools' from Ollama. Cannot run a tool-calling benchmark. Verified 2026-06-20 against gemma2:9b and gemma3:4b. ('gemma3:9b' was also a nonexistent tag.)"
     },
     {
       "name": "phi4:14b",

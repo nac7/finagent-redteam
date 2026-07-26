@@ -26,7 +26,7 @@
 \author{
   Nachiket Lele\footnotemark[1] \\
   \textit{Visa Inc.} \\
-  \texttt{lelenachiket07@gmail.com} \\
+  \texttt{lelenachiket991@gmail.com} \\
   \and
   GitHub: \texttt{github.com/nac7/finagent-redteam} \\
   \textit{Open source contributions for AI safety evaluation}
@@ -46,7 +46,7 @@ Financial institutions increasingly deploy LLM agents to automate accounts payab
 
 This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign) spanning seven threat categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, confused-deputy attacks, and prompt injection. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
 
-We evaluate 7 state-of-the-art models: Claude Sonnet/Haiku, Gemini 2.0 Flash, Mistral 7B, Qwen 3 8B, Llama 3.1 8B, and Gemma 2 9B. Results show stark disparities: frontier models achieve 0\% attack success rate, while open-source models exhibit 40--80\% vulnerability. Bootstrap significance testing quantifies confidence intervals on all comparisons. The benchmark is open-source, deterministic (no LLM grading), and deployable in production financial environments.
+We evaluate seven models spanning closed- and open-weight families and three capability tiers: Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served both locally (Ollama) and via a cloud provider (Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models—including a frontier model, GPT-4o at 71\% attack success rate (ASR)—readily execute compliance-violating actions; only Claude Sonnet resists (0\% ASR). Merely \emph{stating} policy is not a reliable control: it nearly eliminates attacks for strong instruction-followers (GPT-4o and Claude Haiku both drop to 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). In contrast, \emph{hard enforcement} drives ASR to 0\% for every model while incurring no measured over-refusal on benign tasks. All success criteria are deterministic state predicates (no LLM grading), and every rate is reported with a 95\% Wilson confidence interval. The benchmark is open-source, reproducible, and deployable in production financial environments.
 
 \textbf{Keywords:} LLM safety, agent red-teaming, financial compliance, regulatory bypass, benchmark design
 
@@ -109,7 +109,7 @@ Financial compliance failures fall into seven categories, each modeled as a scen
 
 \label{sec:related}
 
-\textbf{Agent red-teaming benchmarks:} AgentBench \citep{}, ToolEmu \citep{}, AgentDojo \citep{}. These focus on agent reasoning and tool use, not financial compliance or regulatory controls.
+\textbf{Agent red-teaming benchmarks:} AgentBench \citep{liu2023agentbench}, ToolEmu \citep{wang2024toolemu}, and AgentDojo \citep{wang2024agentdojo}. These focus on agent reasoning and tool use, not financial compliance or regulatory controls.
 
 \textbf{Financial NLP:} Prior work on fraud detection and financial sentiment analysis, but no benchmark for agent-driven compliance bypass.
 

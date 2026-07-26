@@ -306,21 +306,44 @@ def pairwise_significance(results_a: list, results_b: list, posture: str = "advi
     mean_b = sum(outcomes_b) / len(outcomes_b) if outcomes_b else 0.0
     observed_diff = mean_a - mean_b
 
-    # Bootstrap resamples
+    # 95% CI on the difference via the bootstrap percentile method: resample
+    # each group independently and take percentiles of the difference.
     boot_a = bootstrap_resample(outcomes_a, n_resamples, random_seed)
     boot_b = bootstrap_resample(outcomes_b, n_resamples, random_seed)
+    boot_diffs = sorted(ba - bb for ba, bb in zip(boot_a, boot_b))
+    if boot_diffs:
+        ci_lower = boot_diffs[int(0.025 * len(boot_diffs))]
+        ci_upper = boot_diffs[int(0.975 * len(boot_diffs))]
+    else:
+        ci_lower = ci_upper = 0.0
 
-    # Compute bootstrap differences
-    boot_diffs = [ba - bb for ba, bb in zip(boot_a, boot_b)]
-
-    # Two-tailed p-value: proportion of resamples more extreme than observed
-    n_extreme = sum(1 for bd in boot_diffs if abs(bd) >= abs(observed_diff))
-    p_value = n_extreme / len(boot_diffs) if boot_diffs else 1.0
-
-    # 95% CI on the difference (via bootstrap percentile method)
-    boot_diffs_sorted = sorted(boot_diffs)
-    ci_lower = boot_diffs_sorted[int(0.025 * len(boot_diffs_sorted))]
-    ci_upper = boot_diffs_sorted[int(0.975 * len(boot_diffs_sorted))]
+    # Two-tailed p-value via a PERMUTATION test of the null hypothesis that the
+    # two groups are exchangeable (identical underlying rate). Pool the trial
+    # outcomes, repeatedly reshuffle and re-split at the original group sizes,
+    # and measure how often the permuted |difference| is at least as large as
+    # the observed one.
+    #
+    # NOTE: the earlier implementation computed the p-value from a bootstrap
+    # distribution *centered on the observed difference* and asked how many
+    # resamples exceeded it -- that yields ~0.5 regardless of effect size and is
+    # not a valid hypothesis test. The permutation test below is the correct
+    # construction for a difference in proportions.
+    pooled = outcomes_a + outcomes_b
+    na, nb = len(outcomes_a), len(outcomes_b)
+    if na == 0 or nb == 0:
+        p_value = 1.0
+    else:
+        if random_seed is not None:
+            random.seed(random_seed)
+        thresh = abs(observed_diff) - 1e-12
+        extreme = 0
+        for _ in range(n_resamples):
+            random.shuffle(pooled)
+            pa = sum(pooled[:na]) / na
+            pb = sum(pooled[na:]) / nb
+            if abs(pa - pb) >= thresh:
+                extreme += 1
+        p_value = extreme / n_resamples
 
     return {
         "model_a_mean": round(mean_a, 4),

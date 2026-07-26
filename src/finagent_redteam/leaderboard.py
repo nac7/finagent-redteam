@@ -12,6 +12,7 @@ touch a model.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from collections.abc import Callable
@@ -42,16 +43,26 @@ class ScenarioTrialResult:
     errors: int = 0
 
     @property
+    def valid_trials(self) -> int:
+        """Trials that completed without an API/runtime error."""
+        return max(self.n_trials - self.errors, 0)
+
+    @property
     def rate_none(self) -> float:
-        return self.successes_none / self.n_trials if self.n_trials else 0.0
+        # Use valid_trials so API errors don't count as "model blocked it".
+        # Falls back to 0.0 only when every trial errored (no data at all).
+        n = self.valid_trials
+        return self.successes_none / n if n > 0 else 0.0
 
     @property
     def rate_advisory(self) -> float:
-        return self.successes_advisory / self.n_trials if self.n_trials else 0.0
+        n = self.valid_trials
+        return self.successes_advisory / n if n > 0 else 0.0
 
     @property
     def rate_enforced(self) -> float:
-        return self.successes_enforced / self.n_trials if self.n_trials else 0.0
+        n = self.valid_trials
+        return self.successes_enforced / n if n > 0 else 0.0
 
 
 @dataclass
@@ -80,6 +91,7 @@ def run_scenario_trials(
     trials: int = 1,
     max_steps: int = 8,
     verbose: bool = False,
+    error_retry_delay: float = 30.0,
 ) -> ScenarioTrialResult:
     sn = sa = se = errors = 0
     for t in range(trials):
@@ -87,12 +99,19 @@ def run_scenario_trials(
             kind = "benign" if scenario.benign else "attack"
             _log(f"  {scenario.id} [{kind}] trial {t + 1}/{trials}")
         res = run_postures(agent_factory, scenario, max_steps)
+        if res["error"]:
+            # Immediate single retry after a brief wait — handles transient
+            # rate-limit bursts that exhausted per-call retries in the agent.
+            _log(f"    !! error on trial {t + 1}: {res['error'][:120]}")
+            _log(f"    Waiting {error_retry_delay:.0f}s then retrying trial {t + 1}...")
+            time.sleep(error_retry_delay)
+            res = run_postures(agent_factory, scenario, max_steps)
+            if res["error"]:
+                _log(f"    !! retry also failed: {res['error'][:120]}")
         sn += int(res["achieved_none"])
         sa += int(res["achieved_advisory"])
         se += int(res["achieved_enforced"])
         errors += int(bool(res["error"]))
-        if verbose and res["error"]:
-            _log(f"    !! error: {res['error']}")
     return ScenarioTrialResult(
         scenario_id=scenario.id,
         category=scenario.category,
@@ -129,15 +148,19 @@ def _load_checkpoint(path: str) -> tuple[list[ScenarioTrialResult], int] | None:
     results: list[ScenarioTrialResult] = []
     for s in scenarios_raw:
         n = s.get("n_trials", 1)
+        errs = s.get("errors", 0)
+        valid = max(n - errs, 0)
         results.append(ScenarioTrialResult(
             scenario_id=s["scenario_id"],
             category=s["category"],
             benign=s.get("benign", False),
             n_trials=n,
-            successes_none=round(s.get("rate_none", 0.0) * n),
-            successes_advisory=round(s.get("rate_advisory", 0.0) * n),
-            successes_enforced=round(s.get("rate_enforced", 0.0) * n),
-            errors=s.get("errors", 0),
+            # Rates in the JSON were computed over valid_trials at save time,
+            # so reconstruct successes using valid_trials as denominator.
+            successes_none=round(s.get("rate_none", 0.0) * valid),
+            successes_advisory=round(s.get("rate_advisory", 0.0) * valid),
+            successes_enforced=round(s.get("rate_enforced", 0.0) * valid),
+            errors=errs,
         ))
     return results, completed
 
@@ -151,6 +174,8 @@ def run_model(
     verbose: bool = True,
     checkpoint_path: str | None = None,
     label: str | None = None,
+    on_checkpoint: Callable[[ModelReport], None] | None = None,
+    inter_scenario_delay: float = 0.0,
 ) -> ModelReport:
     """Run all scenarios for one model.
 
@@ -158,25 +183,47 @@ def run_model(
     ``checkpoint_path`` saves intermediate JSON after every scenario so a crash
     loses at most one scenario's work.  If the checkpoint already covers all
     scenarios the model is skipped entirely (results loaded from disk).
+    ``inter_scenario_delay`` pauses this many seconds between scenarios to let a
+    provider's tokens/min quota window recover (avoids cascading 429s on free
+    tiers like Groq).
     """
     display = label or model
 
     # --- Resume from checkpoint if available ---------------------------------
+    # A checkpointed scenario counts as DONE only when its data is fully clean at
+    # the trial count this run requests: exactly ``trials`` trials with zero
+    # errors. Every other case is re-run, and good work is never discarded:
+    #   * fully-errored scenarios (e.g. a prior key-less run)   -> re-run
+    #   * partially-errored scenarios (some trials failed)      -> re-run
+    #   * scenarios recorded at a different --trials value       -> re-run
+    # This makes any run resumable without a restart: rerunning the same command
+    # picks up exactly where it left off and repairs corrupt/mismatched data.
     prior_results: list[ScenarioTrialResult] = []
     if checkpoint_path:
         loaded = _load_checkpoint(checkpoint_path)
         if loaded is not None:
-            prior_results, completed = loaded
-            if completed >= len(scenarios):
-                # Fully done — load and return without touching the model.
-                if verbose:
-                    _log(f"  SKIP {display}  (checkpoint complete: {completed}/{len(scenarios)} scenarios)")
-                return ModelReport(model=model, results=prior_results)
-            if completed > 0 and verbose:
-                _log(f"  RESUME {display}  from scenario {completed + 1}/{len(scenarios)}")
+            prior_results, _completed = loaded
 
-    completed_ids = {r.scenario_id for r in prior_results}
-    results: list[ScenarioTrialResult] = list(prior_results)
+    def _is_clean_done(r: ScenarioTrialResult) -> bool:
+        return r.n_trials == trials and r.errors == 0
+
+    clean_prior = [r for r in prior_results if _is_clean_done(r)]
+    completed_ids = {r.scenario_id for r in clean_prior}
+    results: list[ScenarioTrialResult] = list(clean_prior)
+    stale = len(prior_results) - len(clean_prior)
+
+    if prior_results:
+        if len(completed_ids) >= len(scenarios):
+            if verbose:
+                _log(f"  SKIP {display}  (checkpoint complete & clean: "
+                     f"{len(completed_ids)}/{len(scenarios)} scenarios)")
+            return ModelReport(model=model, results=results)
+        if verbose:
+            msg = (f"  RESUME {display}  {len(completed_ids)}/{len(scenarios)} "
+                   f"clean scenarios kept")
+            if stale:
+                msg += f", {stale} incomplete/errored/mismatched will re-run"
+            _log(msg)
 
     if verbose:
         remaining = len(scenarios) - len(completed_ids)
@@ -184,9 +231,15 @@ def run_model(
 
     t0 = time.monotonic()
 
+    first_run = True
     for i, s in enumerate(scenarios, 1):
         if s.id in completed_ids:
             continue
+        # Throttle between scenarios so the provider's tokens/min window can
+        # recover. Skip the delay before the very first scenario we actually run.
+        if inter_scenario_delay > 0 and not first_run:
+            time.sleep(inter_scenario_delay)
+        first_run = False
         if verbose:
             pct = int(100 * (i - 1) / len(scenarios))
             _log(f"  [{pct:3d}%] {i}/{len(scenarios)} {s.id}")
@@ -196,6 +249,31 @@ def run_model(
 
         if checkpoint_path:
             _save_checkpoint(checkpoint_path, model, results, trials)
+        if on_checkpoint is not None:
+            on_checkpoint(ModelReport(model=model, results=list(results)))
+
+    # --- End-of-model retry pass for fully-errored scenarios ------------------
+    no_data_ids = {r.scenario_id for r in results if r.valid_trials == 0}
+    no_data_scenarios = [s for s in scenarios if s.id in no_data_ids]
+    if no_data_scenarios:
+        _log(
+            f"  Retry pass: {len(no_data_scenarios)} scenarios with no valid data "
+            f"— waiting 60s for rate limits to clear..."
+        )
+        time.sleep(60)
+        for s in no_data_scenarios:
+            _log(f"    [retry] {s.id}")
+            r_new = run_scenario_trials(
+                agent_factory, s, trials=trials, max_steps=max_steps, verbose=False
+            )
+            results = [r_new if x.scenario_id == s.id else x for x in results]
+            if checkpoint_path:
+                _save_checkpoint(checkpoint_path, model, results, trials)
+            if on_checkpoint is not None:
+                on_checkpoint(ModelReport(model=model, results=list(results)))
+        if verbose:
+            still_bad = sum(1 for r in results if r.valid_trials == 0 and not r.benign)
+            _log(f"  Retry pass done. Attack scenarios still with no valid data: {still_bad}")
 
     elapsed = time.monotonic() - t0
     report = ModelReport(model=model, results=results)
@@ -353,10 +431,14 @@ def render_json(reports: list[ModelReport], trials: int) -> str:
                         "category": x.category,
                         "benign": x.benign,
                         "n_trials": x.n_trials,
+                        "valid_trials": x.valid_trials,
                         "rate_none": x.rate_none,
                         "rate_advisory": x.rate_advisory,
                         "rate_enforced": x.rate_enforced,
                         "errors": x.errors,
+                        "data_quality": "ok" if x.errors == 0 else (
+                            "no_data" if x.valid_trials == 0 else "partial"
+                        ),
                     }
                     for x in r.results
                 ],

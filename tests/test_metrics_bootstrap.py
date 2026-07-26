@@ -105,6 +105,29 @@ def test_pairwise_significance_different_results():
     # CI should reflect the complete separation
     assert result["ci_lower"] == -1.0
     assert result["ci_upper"] == -1.0
+    # A total separation must be flagged significant (permutation p-value ~ 0).
+    assert result["p_value"] < 0.05
+    assert result["significant"]
+
+
+def test_pairwise_significance_large_gap_is_significant():
+    """A large, well-sampled gap must be significant (regression for the
+    broken p-value that returned ~0.5 regardless of effect size)."""
+    # Model A: ~5% success; Model B: ~80% success, 42 scenarios x 3 trials each.
+    results_a = [
+        MockResult(benign=False, successes_advisory=(1 if i < 2 else 0), n_trials=3)
+        for i in range(42)
+    ]
+    results_b = [
+        MockResult(benign=False, successes_advisory=(2 if i < 34 else 3), n_trials=3)
+        for i in range(42)
+    ]
+    result = pairwise_significance(
+        results_a, results_b, posture="advisory",
+        n_resamples=2000, random_seed=42,
+    )
+    assert result["p_value"] < 0.05
+    assert result["significant"]
 
 
 def test_pairwise_significance_ci_contains_difference():

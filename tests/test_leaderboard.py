@@ -5,9 +5,12 @@ from finagent_redteam.eval.metrics import build_scorecard, category_breakdown
 from finagent_redteam.leaderboard import (
     ModelReport,
     ScenarioTrialResult,
+    _save_checkpoint,
     render_markdown,
+    run_model,
     run_scenario_trials,
 )
+from finagent_redteam.scenarios import generate_scenarios
 from finagent_redteam.scenarios.builtin import SCN_UNAUTHORIZED
 
 
@@ -74,6 +77,75 @@ def test_run_scenario_trials_aggregates_over_postures_and_trials():
     assert res.rate_advisory == 1.0   # worst-case ignores stated policy
     assert res.rate_enforced == 0.0   # blocked by enforcement
     assert res.errors == 0
+
+
+class _NoOpAgent(AgentModel):
+    """Ends every scenario immediately with no tool calls and no error."""
+
+    def complete(self, messages, tools):
+        return AssistantTurn(content="done")
+
+
+def test_resume_reruns_errored_scenarios_but_keeps_clean(tmp_path):
+    # Two real scenarios; checkpoint marks the first clean and the second as a
+    # fully-errored (e.g. key-less) scenario that must be re-run on resume.
+    scen = generate_scenarios(seed=0, per_threat=1)[:2]
+    a, b = scen[0], scen[1]
+    ckpt = str(tmp_path / "m.checkpoint.json")
+
+    prior = [
+        # a: clean at trials=3, a distinctive successes count we expect preserved
+        ScenarioTrialResult(a.id, a.category, a.benign, 3, 3, 3, 0, errors=0),
+        # b: every trial errored -> no valid data, must be repaired
+        ScenarioTrialResult(b.id, b.category, b.benign, 3, 0, 0, 0, errors=3),
+    ]
+    _save_checkpoint(ckpt, "m", prior, trials=3)
+
+    report = run_model("m", _NoOpAgent, scen, trials=3, verbose=False,
+                       checkpoint_path=ckpt)
+    by_id = {r.scenario_id: r for r in report.results}
+
+    # a was clean -> preserved untouched (agent never re-run for it).
+    assert by_id[a.id].errors == 0
+    assert by_id[a.id].successes_none == 3
+    # b was errored -> re-run with the no-op agent, now has valid (0-error) data.
+    assert by_id[b.id].errors == 0
+    assert by_id[b.id].n_trials == 3
+
+
+def test_resume_reruns_on_trials_mismatch(tmp_path):
+    # Checkpoint recorded at trials=1; a trials=3 run must NOT trust it.
+    scen = generate_scenarios(seed=0, per_threat=1)[:1]
+    a = scen[0]
+    ckpt = str(tmp_path / "m.checkpoint.json")
+    _save_checkpoint(
+        ckpt, "m",
+        [ScenarioTrialResult(a.id, a.category, a.benign, 1, 1, 1, 0, errors=0)],
+        trials=1,
+    )
+
+    report = run_model("m", _NoOpAgent, scen, trials=3, verbose=False,
+                       checkpoint_path=ckpt)
+    # Re-run at the requested trial count, not the stale 1-trial record.
+    assert report.results[0].n_trials == 3
+
+
+def test_resume_skips_when_fully_clean(tmp_path):
+    scen = generate_scenarios(seed=0, per_threat=1)[:2]
+    ckpt = str(tmp_path / "m.checkpoint.json")
+    prior = [
+        ScenarioTrialResult(s.id, s.category, s.benign, 3, 1, 1, 0, errors=0)
+        for s in scen
+    ]
+    _save_checkpoint(ckpt, "m", prior, trials=3)
+
+    # A factory that would raise if invoked proves no scenario was re-run.
+    def _boom():
+        raise AssertionError("agent should not be constructed when checkpoint is clean")
+
+    report = run_model("m", _boom, scen, trials=3, verbose=False,
+                       checkpoint_path=ckpt)
+    assert len(report.results) == 2
 
 
 def test_render_markdown_ranks_by_residual_then_susceptibility():

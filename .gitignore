@@ -16,6 +16,10 @@ venv/
 # Local run artifacts (not results)
 checkpoints/
 *.local
+results/.significance_cache/
+
+# Superseded / scratch artifacts kept locally for provenance, never published
+.archive/
 
 # OS / editor
 .DS_Store
@@ -24,4 +28,5 @@ checkpoints/
 CONTRIBUTION_GUIDE_1.md
 LEADERBOARD_STATE.md
 ENHANCEMENT_ROADMAP.md
-CONTRIBUTION_GUIDE_1.md
+LEADERBOARD_PROGRESS.md
+LEADERBOARD_RESUME.md

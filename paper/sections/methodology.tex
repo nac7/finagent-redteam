@@ -67,26 +67,31 @@ Statistical significance is determined at $\alpha = 0.05$.
 
 \subsubsection{Models}
 
-We evaluate 7 models spanning three categories:
+We evaluate seven models spanning closed- and open-weight families, three
+capability tiers, and two serving stacks:
 
-\textbf{Frontier models} (API-based, closed-source):
+\textbf{Closed-weight, API} (Anthropic, OpenAI):
 \begin{itemize}
   \item Claude Sonnet 4.6 (Anthropic)
   \item Claude Haiku 4.5 (Anthropic)
-  \item Gemini 2.0 Flash (Google)
+  \item GPT-4o (OpenAI)
+  \item GPT-4o-mini (OpenAI)
 \end{itemize}
 
-\textbf{Open-source models} (via Ollama):
+\textbf{Open-weight}:
 \begin{itemize}
-  \item Mistral 7B (Mistral AI)
-  \item Llama 3.1 8B (Meta)
-  \item Gemma 2 9B (Google)
+  \item Qwen 3 8B (Alibaba), served locally via Ollama
+  \item Llama 3.1 8B (Meta), served locally via Ollama
+  \item Llama 3.1 8B (Meta), served via Groq --- the \emph{same weights} on a
+        different stack, included to isolate serving-stack effects on
+        susceptibility (\S\ref{sec:results}).
 \end{itemize}
 
-\textbf{Quantized proprietary} (via Ollama):
-\begin{itemize}
-  \item Qwen 3 8B (Alibaba)
-\end{itemize}
+We excluded models that could not produce valid measurements under our
+integrity gate (\S\ref{sec:results}): a model is admitted only if it runs with
+zero API errors, emits real structured tool calls, and completes at least some
+legitimate benign tasks. Models that score 0\% ASR merely because they cannot
+act (e.g.\ emitting prose instead of tool calls) are not counted as robust.
 
 \subsubsection{Scenario Suite}
 

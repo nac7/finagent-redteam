@@ -6,7 +6,7 @@ Supports checkpoint/resume: results are saved incrementally so you can pause
 and resume without losing progress or recomputing tests.
 
 Usage:
-    python compute_significance.py results/2026-06-07_generated-p6_3trials.json
+    python compute_significance.py results/leaderboard_final.json
 """
 
 import json
@@ -58,7 +58,7 @@ def convert_scenario_to_result_obj(scenario_dict):
 
 
 def main():
-    results_file = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("results/2026-06-07_generated-p6_3trials.json")
+    results_file = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("results/leaderboard_final.json")
 
     if not results_file.exists():
         print(f"Error: Results file not found: {results_file}", file=sys.stderr)

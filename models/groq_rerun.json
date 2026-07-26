@@ -1,0 +1,32 @@
+{
+  "_comment": "Groq models for paper re-run. Set GROQ_API_KEY before running.",
+  "models": [
+    {
+      "name": "llama-3.1-8b-instant",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "small",
+      "_note": "Re-run to fix 94% error rate from missing API key"
+    },
+    {
+      "name": "llama-3.3-70b-versatile",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "capable",
+      "_note": "Larger Llama variant, already in checkpoint"
+    },
+    {
+      "name": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "temperature": 0.7,
+      "_provider": "Groq",
+      "_tier": "frontier",
+      "_note": "Llama 4 Scout MoE - replaces decommissioned Gemma 2 9B"
+    }
+  ]
+}

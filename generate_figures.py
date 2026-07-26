@@ -5,6 +5,7 @@ Outputs high-res PDF figures ready for LaTeX inclusion.
 """
 
 import json
+import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
@@ -19,10 +20,13 @@ plt.rcParams['savefig.format'] = 'pdf'
 plt.rcParams['lines.linewidth'] = 1.5
 plt.rcParams['axes.linewidth'] = 1.2
 
-# Load results
-results_file = Path('results/2026-06-07_generated-p6_3trials.json')
+# Load results — the canonical, validation-gated leaderboard by default.
+# Pass a different path as argv[1] to render a specific results file.
+results_file = Path(sys.argv[1] if len(sys.argv) > 1
+                    else 'results/leaderboard_final.json')
 with open(results_file) as f:
     data = json.load(f)
+print(f"[info] rendering figures from {results_file}")
 
 # Create figures directory
 figures_dir = Path('paper/figures')
@@ -40,11 +44,16 @@ for model_data in data['models']:
     model_name = model_data['model']
     sc = model_data['scorecard']
 
-    # Clean up model names for display
-    display_name = model_name.replace('gemini-2.0-flash', 'Gemini 2.0')\
+    # Clean up model names for display. Order matters: replace the more specific
+    # names (gpt-4o-mini, llama-3.1-8b-instant) before their prefixes (gpt-4o,
+    # llama3.1:8b) so they don't get partially rewritten.
+    display_name = model_name.replace('gpt-4o-mini', 'GPT-4o\nmini')\
+                              .replace('gpt-4o', 'GPT-4o')\
                               .replace('claude-sonnet-4-6', 'Claude\nSonnet')\
                               .replace('claude-haiku-4-5-20251001', 'Claude\nHaiku')\
-                              .replace('llama-3.1-8b-instant', 'Llama 3.1')\
+                              .replace('gemini-2.0-flash', 'Gemini 2.0')\
+                              .replace('llama-3.1-8b-instant', 'Llama 3.1\n8B (Groq)')\
+                              .replace('llama3.1:8b', 'Llama 3.1\n8B (local)')\
                               .replace('gemma2-9b-it', 'Gemma 2 9B')\
                               .replace('mistral:7b', 'Mistral 7B')\
                               .replace('qwen3:8b', 'Qwen 3 8B')
@@ -75,7 +84,7 @@ ax.set_title('FinAgent Red-Team: ASR Across Control Postures', fontsize=12, font
 ax.set_xticks(x)
 ax.set_xticklabels(models, fontsize=10)
 ax.legend(loc='upper left', fontsize=10)
-ax.set_ylim([0, 95])
+ax.set_ylim([0, 100])
 ax.grid(axis='y', alpha=0.3, linestyle='--')
 
 # Add value labels on bars
@@ -98,8 +107,8 @@ plt.close()
 # Extract per-threat data
 threat_order = ['T2_unauthorized_transfer', 'T3_sanctions_evasion', 'T4_structuring',
                 'T5_dual_approval_defeat', 'T6_data_exfiltration', 'T7_confused_deputy']
-threat_labels = ['T1: Unauthorized\nTransfer', 'T2: Sanctions\nEvasion', 'T3: Payment\nStructuring',
-                 'T4: Dual-Approval\nDefeat', 'T5: Data\nExfiltration', 'T6: Confused\nDeputy']
+threat_labels = ['T2: Unauthorized\nTransfer', 'T3: Sanctions\nEvasion', 'T4: Payment\nStructuring',
+                 'T5: Dual-Approval\nDefeat', 'T6: Data\nExfiltration', 'T7: Confused\nDeputy']
 
 heatmap_data = np.zeros((len(threat_order), len(models)))
 
@@ -161,8 +170,8 @@ ax.set_ylabel('ASR Reduction (%)', fontsize=11, fontweight='bold')
 ax.set_title('FinAgent Red-Team: Control Posture Uplift Analysis', fontsize=12, fontweight='bold')
 ax.set_xticks(x)
 ax.set_xticklabels(models, fontsize=10)
-ax.legend(loc='upper left', fontsize=10)
-ax.set_ylim([0, 55])
+ax.legend(loc='upper right', fontsize=10)
+ax.set_ylim([0, max(max(policy_uplift), max(enforcement_uplift)) + 12])
 ax.grid(axis='y', alpha=0.3, linestyle='--')
 
 # Add value labels
@@ -189,7 +198,8 @@ sorted_indices = np.argsort(asr_advisory)
 sorted_models = [models[i] for i in sorted_indices]
 sorted_asr = [asr_advisory[i] for i in sorted_indices]
 
-colors = ['#27ae60' if asr < 1 else '#f39c12' if asr < 30 else '#e74c3c' for asr in sorted_asr]
+# Color thresholds match the legend below: robust <5%, moderate 5-30%, else vulnerable.
+colors = ['#27ae60' if asr < 5 else '#f39c12' if asr < 30 else '#e74c3c' for asr in sorted_asr]
 
 bars = ax.barh(sorted_models, sorted_asr, color=colors, alpha=0.8)
 
