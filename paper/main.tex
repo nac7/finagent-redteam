@@ -141,13 +141,9 @@ Our 48 scenarios sample the threat space but do not exhaustively enumerate all p
 
 \label{sec:responsible}
 
-This benchmark is designed to harden financial AI systems before deployment. We have:
-\begin{itemize}
-  \item Tested all scenarios against models in controlled, offline environments.
-  \item Shared findings with model vendors (OpenAI, Google, Anthropic, Meta) before public release.
-  \item Designed the benchmark to be freely available to security researchers and practitioners.
-  \item Included no real account data, transaction histories, or customer information.
-\end{itemize}
+This benchmark is designed to harden financial AI systems before deployment. Two properties limit its offensive utility. First, every scenario runs against a synthetic world: mock ledgers, mock payees, mock counterparties. The benchmark contains no real account data, transaction histories, or customer information, and no scenario is executable against a live financial system without being rewritten for that system's interfaces. Second, the attacks it encodes are not novel capabilities. Indirect prompt injection through agent-readable content is public knowledge \citep{greshake2023injection}, and the compliance controls the scenarios target --- reporting thresholds, sanctions screening, dual authorization --- are described in publicly available statute and regulation. What is new here is the measurement apparatus, not the attack.
+
+The findings in this paper have not been disclosed to the model vendors in advance of publication. We judge the risk of publication to be low for the reasons above, and the benefit to defenders to be concrete: the central result is that a control the operator already has available --- enforcement at the tool boundary --- reduces attack success to zero for every model tested, including the models this paper reports as most susceptible. A practitioner who reads this paper can act on it without waiting for a model update.
 
 We encourage responsible use: researchers and practitioners should deploy this benchmark in controlled environments and share findings with vendors and the broader community.
 
