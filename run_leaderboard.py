@@ -84,6 +84,12 @@ def _parse_args() -> argparse.Namespace:
                    help="directory for checkpoint files (default: checkpoints/)")
     p.add_argument("--quiet", action="store_true",
                    help="suppress per-scenario progress")
+    p.add_argument("--categories", nargs="*", default=None,
+                   help="restrict the run to these threat categories (e.g. "
+                        "T4_structuring T5_dual_approval_defeat). The suite is "
+                        "generated in full first and then filtered, so scenario "
+                        "IDs and content are identical to an unfiltered run at "
+                        "the same --seed/--per-threat and results remain mergeable.")
     p.add_argument("--inter-scenario-delay", type=float, default=0.0,
                    help="seconds to pause between scenarios so a provider's "
                         "rate/quota window can recover (e.g. 45 for Groq free tier)")
@@ -107,6 +113,16 @@ def main() -> int:
     else:
         scenarios = get_all_scenarios()
         suite_tag = "builtin"
+
+    if args.categories:
+        wanted = set(args.categories)
+        unknown = wanted - {s.category for s in scenarios}
+        if unknown:
+            _log(f"ERROR: unknown --categories: {sorted(unknown)}")
+            return 2
+        scenarios = [s for s in scenarios if s.category in wanted]
+        suite_tag += "-" + "+".join(sorted(wanted))
+        _log(f"Category filter: {sorted(wanted)}")
 
     attack = sum(1 for s in scenarios if not s.benign)
     benign = sum(1 for s in scenarios if s.benign)
@@ -177,7 +193,8 @@ def main() -> int:
 
     # Setup for incremental results writing
     today = date.today().isoformat()
-    suite_tag = f"generated-p{args.per_threat}" if args.suite == "generated" else "builtin"
+    # suite_tag was already built (and category-tagged) above; recomputing it here
+    # would drop the filter and let a filtered run overwrite an unfiltered one.
     stem = f"{today}_{suite_tag}_{args.trials}trials"
 
     # Generate run_hash from scenario IDs and seed for reproducibility
@@ -197,6 +214,7 @@ def main() -> int:
         "suite": args.suite,
         "per_threat": args.per_threat if args.suite == "generated" else None,
         "seed": args.seed,
+        "categories": sorted(args.categories) if args.categories else None,
         "run_hash": run_hash,
         "runner_version": runner_version,
         "trials": args.trials,

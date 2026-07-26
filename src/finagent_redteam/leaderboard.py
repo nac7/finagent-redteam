@@ -212,22 +212,33 @@ def run_model(
     results: list[ScenarioTrialResult] = list(clean_prior)
     stale = len(prior_results) - len(clean_prior)
 
+    # Count against the scenarios actually requested, not against every ID in the
+    # checkpoint. A checkpoint may hold records outside the current selection (a
+    # category-filtered re-run resumes a file written by a full run); those are
+    # carried into the report but must not be mistaken for progress on this run,
+    # or a filtered resume would report itself complete and skip the model.
+    requested_ids = {s.id for s in scenarios}
+    pending_ids = requested_ids - completed_ids
+    done_here = len(requested_ids) - len(pending_ids)
+
     if prior_results:
-        if len(completed_ids) >= len(scenarios):
+        if not pending_ids:
             if verbose:
                 _log(f"  SKIP {display}  (checkpoint complete & clean: "
-                     f"{len(completed_ids)}/{len(scenarios)} scenarios)")
+                     f"{done_here}/{len(scenarios)} scenarios)")
             return ModelReport(model=model, results=results)
         if verbose:
-            msg = (f"  RESUME {display}  {len(completed_ids)}/{len(scenarios)} "
-                   f"clean scenarios kept")
+            msg = f"  RESUME {display}  {done_here}/{len(scenarios)} clean scenarios kept"
             if stale:
                 msg += f", {stale} incomplete/errored/mismatched will re-run"
+            carried = len(completed_ids) - done_here
+            if carried:
+                msg += f"; {carried} out-of-selection records carried through"
             _log(msg)
 
     if verbose:
-        remaining = len(scenarios) - len(completed_ids)
-        _log(f">> {display}  ({remaining} remaining scenarios x {trials} trials x 3 postures)")
+        _log(f">> {display}  ({len(pending_ids)} remaining scenarios "
+             f"x {trials} trials x 3 postures)")
 
     t0 = time.monotonic()
 
