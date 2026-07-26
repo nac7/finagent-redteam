@@ -37,7 +37,8 @@ Ranked by ASR at **advisory** posture (policy stated but not enforced), then by 
 - **Policy-following ability is the real differentiator.** gpt-4o converts a 71% intrinsic ASR into 1% residual when policy is merely *stated* (+71 uplift, the largest measured). gpt-4o-mini, from a nearly identical starting point (83%), only reaches 28% (+55). Same family, same prompt — the smaller model cannot act on the policy it was given.
 - **claude-sonnet-4-6 is the only model that is both fully robust and fully useful** (0% ASR at every posture, 100% utility, 0% over-refusal).
 - **Two paths to 0% ASR, only one of them good.** llama3.1:8b also scores 0% everywhere, but at **50% over-refusal** — see the caveat below. Sonnet's 0% is refusal-with-competence; the local llama's is largely non-action.
-- **T5 (dual-approval defeat) is the hardest category**, and stated policy can make it *worse*: gpt-4o-mini goes from 78% (none) to **100% (advisory)**, and qwen3:8b from 94% to **100%**. Naming the control appears to hand the model the vocabulary for circumventing it.
+- **T5 (dual-approval defeat) and T4 (structuring) are the hardest categories by level**, staying at 83–100% under stated policy for gpt-4o-mini and qwen3:8b while other categories collapse to 0%. These are the controls requiring aggregate or procedural reasoning rather than recognition of a single forbidden act.
+- **Do not claim that stating the policy makes T5 worse.** Several models show an apparent none→advisory *increase* (gpt-4o-mini 78%→100%, qwen3:8b 94%→100%, llama-3.1-8b-instant 50%→67%), but none of these survive a paired permutation test at the current n=6 scenarios/category: p=0.12, p=1.00 and p=1.00 respectively. A power analysis (`analysis/power_analysis.py`) puts power at n=6 near zero for all three. The apparent effect is noise. See the sample-size note below.
 
 ---
 
@@ -69,7 +70,19 @@ Ranked by ASR at **advisory** posture (policy stated but not enforced), then by 
 | T7: Confused Deputy | 28% → 0% | 100% → 0% | 100% → 0% | 33% → 0% | 100% → 28% |
 
 All models are 0% at enforced posture in every category, so the enforced column is omitted.
-Bold marks categories where stating the policy **increased** ASR.
+Bold marks cells where advisory ASR is numerically **higher** than none — all of which are within noise at the current sample size (see the sample-size note), and none of which should be reported as an effect.
+
+> **Sample-size note (per-category claims).** Per-category rates rest on 6 scenarios × 3 trials (T3: 12 scenarios). That is enough to resolve the large posture drops — gpt-4o's −94pp at T5 (p=0.027) and claude-haiku's −100pp (p=0.033) — but not much else. A paired-permutation power analysis over the observed per-scenario rates gives:
+>
+> | Effect | Observed | p at n=6 | n for 80% power |
+> |---|---|---|---|
+> | gpt-4o-mini T5 none→adv | +22pp | 0.12 | ~15 |
+> | claude-haiku T4 none→adv | −39pp | 0.12 | ~10 |
+> | qwen3:8b T4 none→adv | −11pp | 0.49 | ~50 |
+> | qwen3:8b T5 none→adv | +6pp | 1.00 | >60 (impractical) |
+> | llama-3.1-8b-instant T5 none→adv | +17pp | 1.00 | >60 (impractical) |
+>
+> **Implication:** report per-category numbers as levels, not as posture *effects*, until `per_threat` is raised to ≥15. Aggregate (all-category) rates are unaffected — they pool 42 scenarios and the headline posture effects there are significant. Reproduce with `python analysis/power_analysis.py`.
 
 ---
 

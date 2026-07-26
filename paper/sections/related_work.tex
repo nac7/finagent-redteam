@@ -8,6 +8,38 @@ The security-side literature established that tool-using agents inherit an attac
 
 We differ from this family in two respects. First, in what counts as a successful attack. In the injection literature the canonical objective is exfiltration or an obviously forbidden action, and the agent's misbehaviour is legible in its output. The attacks we model are the opposite: a structured payment, a routed approval, a filed transfer --- each individually well-formed, each producing a transcript that reads like competent task completion, and each detectable only as a predicate over final system state. This is why our success criteria are deterministic state predicates and not output judgments; there is nothing in the text to judge. Second, in what the benchmark is designed to attribute. Existing benchmarks report a single ASR per model, optionally under a defense. We hold the scenario fixed and vary only the control posture --- \textit{none}, \textit{advisory}, \textit{enforced} --- which turns a single ASR into a decomposition of where safety actually came from.
 
+Table~\ref{tab:related} summarizes the comparison. We restrict it to properties stated in each work's own description; we do not characterize other benchmarks' grading internals, which are not uniformly documented at the level of detail a fair comparison would need.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Positioning against related agent benchmarks. ``Posture axis'' means the same scenario is replayed under varying enforcement strength so that model judgment and system control can be attributed separately. ``Regulatory trace'' means each threat is mapped to a named obligation and the control that discharges it.}
+\label{tab:related}
+\begin{tabular}{|p{2.3cm}|p{2.5cm}|p{2.9cm}|p{1.9cm}|p{1.6cm}|p{1.5cm}|}
+\hline
+\textbf{Benchmark} & \textbf{Domain} & \textbf{Attack delivery} & \textbf{Environment} & \textbf{Posture axis} & \textbf{Reg.\ trace} \\
+\hline
+AgentBench & General (8 environments) & None (capability only) & Executed & No & No \\
+\hline
+$\tau$-bench & Retail, airline & None (cooperative user; policy in prompt) & Executed, mutable & No & No \\
+\hline
+ToolEmu & General tool use & Risky instructions & LM-emulated & No & No \\
+\hline
+AgentDojo & Productivity suites (incl.\ banking) & Indirect injection & Executed, mutable & No & No \\
+\hline
+InjecAgent & Tool-integrated agents & Indirect injection & Tool-call level & No & No \\
+\hline
+AgentHarm & General harm (11 categories) & Direct malicious request $+$ jailbreak & Synthetic tools & No & No \\
+\hline
+FinVault & Financial & Injection, jailbreak, impersonation & Executed, state-writable & No & Case-driven \\
+\hline
+\textbf{This work} & Financial & Indirect injection only & Executed, state-writable & \textbf{Yes (3)} & \textbf{Predicate-level} \\
+\hline
+\end{tabular}
+\end{table}
+
+Two entries deserve a note rather than a checkmark. AgentDojo includes a banking suite, so the claim that no prior agent-security benchmark touches financial tooling would be false; what it does not do is tie its banking tasks to regulatory obligations or vary enforcement. FinVault is grounded in regulatory cases at the scenario level, which is why its cell reads ``case-driven'' rather than ``no''; the distinction we draw is that our mapping runs all the way down to the scored predicate (Section~\ref{sec:regmap}), so a reader can check that the thing measured is the control failing.
+
 That decomposition is what connects our results to the defense literature. Model-level defenses train a priority ordering over instruction sources \citep{wallace2024hierarchy}; system-level defenses argue that injection should be defeated by construction, outside the model, since the model cannot be trusted to police itself \citep{debenedetti2025camel}. Our advisory-versus-enforced gap is a direct empirical measurement of the premise underlying the latter position. Stated policy is not a reliable control: it is worth $+71$ points of ASR reduction for GPT-4o and only $+55$ for GPT-4o-mini, which starts from a comparable intrinsic susceptibility and still ends at 28\%. Enforcement is worth whatever remains, for every model, without exception --- at zero measured over-refusal for six of our seven models (the exception, Llama~3.1~8B served locally, is discussed in Section~\ref{sec:results}). The variance in the advisory column is a property of the model; the invariance of the enforced column is a property of the system.
 
 \subsection{Financial LLM evaluation}
