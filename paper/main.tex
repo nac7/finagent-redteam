@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{article}
 
-\usepackage[utf-8]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
@@ -46,7 +46,7 @@ Financial institutions increasingly deploy LLM agents to automate accounts payab
 
 This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign) spanning seven threat categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, confused-deputy attacks, and prompt injection. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
 
-We evaluate seven models spanning closed- and open-weight families and three capability tiers: Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served both locally (Ollama) and via a cloud provider (Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models—including a frontier model, GPT-4o at 71\% attack success rate (ASR)—readily execute compliance-violating actions; only Claude Sonnet resists (0\% ASR). Merely \emph{stating} policy is not a reliable control: it nearly eliminates attacks for strong instruction-followers (GPT-4o and Claude Haiku both drop to 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). In contrast, \emph{hard enforcement} drives ASR to 0\% for every model while incurring no measured over-refusal on benign tasks. All success criteria are deterministic state predicates (no LLM grading), and every rate is reported with a 95\% Wilson confidence interval. The benchmark is open-source, reproducible, and deployable in production financial environments.
+We evaluate seven models spanning closed- and open-weight families and three capability tiers: Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served both locally (Ollama) and via a cloud provider (Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models—including a frontier model, GPT-4o at 71\% attack success rate (ASR)—readily execute compliance-violating actions; only Claude Sonnet resists (0\% ASR). Merely \emph{stating} policy is not a reliable control: it nearly eliminates attacks for strong instruction-followers (GPT-4o and Claude Haiku both drop to 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). In contrast, \emph{hard enforcement} drives ASR to 0\% for every model, at zero measured over-refusal for six of the seven; the exception is Llama~3.1~8B served locally, which reaches 0\% ASR partly by declining to act at all (50\% over-refusal). All success criteria are deterministic state predicates (no LLM grading), and every rate is reported with a 95\% Wilson confidence interval. The benchmark is open-source, reproducible, and deployable in production financial environments.
 
 \textbf{Keywords:} LLM safety, agent red-teaming, financial compliance, regulatory bypass, benchmark design
 
@@ -109,13 +109,7 @@ Financial compliance failures fall into seven categories, each modeled as a scen
 
 \label{sec:related}
 
-\textbf{Agent red-teaming benchmarks:} AgentBench \citep{liu2023agentbench}, ToolEmu \citep{wang2024toolemu}, and AgentDojo \citep{wang2024agentdojo}. These focus on agent reasoning and tool use, not financial compliance or regulatory controls.
-
-\textbf{Financial NLP:} Prior work on fraud detection and financial sentiment analysis, but no benchmark for agent-driven compliance bypass.
-
-\textbf{LLM safety evaluations:} Red-teaming work by OpenAI, Anthropic, Google, Meta focuses on toxic output, bias, and alignment. Little work on domain-specific threats like financial controls.
-
-\textbf{Control system design:} Extensive literature on defense-in-depth, dual approval, and segregation of duties in accounting. This benchmark operationalizes those principles in the LLM context.
+\input{sections/related_work}
 
 \section{Limitations}
 
@@ -172,14 +166,14 @@ The benchmark includes:
   \item Agent runner for any OpenAI-compatible API.
   \item Leaderboard evaluation harness with bootstrap significance testing.
   \item Results for all 7 models with checkpoint/resume support.
-  \item Integration with \texttt{lm-evaluation-harness} for broad adoption.
+  \item A validation gate that rejects runs with API errors, absent tool calls, or degenerate benign utility, so that an unusable run cannot be mistaken for a robust one.
 \end{itemize}
 
 All code is MIT-licensed. Results are reproducible: the benchmark uses fixed seeds and deterministic predicates.
 
 \section{Conclusion}
 
-Financial LLM agents represent a new frontier in AI safety evaluation. FinAgent Red-Team provides a rigorous, open-source benchmark to measure and improve robustness against compliance-critical attacks. Early results show frontier models excel, but gaps remain in open-source alternatives.
+Financial LLM agents represent a new frontier in AI safety evaluation. FinAgent Red-Team provides a rigorous, open-source benchmark to measure and improve robustness against compliance-critical attacks. Our results do not support the assumption that capability confers safety: absent a stated policy, a frontier model executed compliance-violating actions in 71\% of attack scenarios, and only one of seven models resisted outright. What separated models was not raw capability but their ability to act on a policy once told --- and even the best of that behaviour was matched, for every model, by hard enforcement. The practical implication for deployment is that policy text is a mitigation and the sandbox is the control.
 
 We release this benchmark to accelerate the maturation of financial AI safety as a discipline.
 

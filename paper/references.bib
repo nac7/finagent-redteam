@@ -1,240 +1,218 @@
-@article{liu2023agentbench,
-  title={{AgentBench}: Evaluating LLMs as Agents},
-  author={Liu, Xiao and Duan, Hao and Han, Jiangyu and others},
-  journal={arXiv preprint arXiv:2308.03688},
-  year={2023}
+% ---------------------------------------------------------------------------
+% Agent benchmarks and agent security
+% ---------------------------------------------------------------------------
+
+@inproceedings{liu2024agentbench,
+  title     = {{AgentBench}: Evaluating {LLMs} as Agents},
+  author    = {Liu, Xiao and Yu, Hao and Zhang, Hanchen and Xu, Yifan and Lei, Xuanyu and Lai, Hanyu and Gu, Yu and Ding, Hangliang and Men, Kaiwen and Yang, Kejuan and Zhang, Shudan and Deng, Xiang and Zeng, Aohan and Du, Zhengxiao and Zhang, Chenhui and Shen, Sheng and Zhang, Tianjun and Su, Yu and Sun, Huan and Huang, Minlie and Dong, Yuxiao and Tang, Jie},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  note      = {arXiv:2308.03688}
 }
 
-@article{wang2024toolemu,
-  title={{ToolEmu}: Modeling Human Tool-Use Errors for Agents},
-  author={Wang, Ziming and Xu, Ying and Pang, Richard},
-  journal={arXiv preprint arXiv:2402.02941},
-  year={2024}
+@inproceedings{ruan2024toolemu,
+  title     = {Identifying the Risks of {LM} Agents with an {LM-Emulated} Sandbox},
+  author    = {Ruan, Yangjun and Dong, Honghua and Wang, Andrew and Pitis, Silviu and Zhou, Yongchao and Ba, Jimmy and Dubois, Yann and Maddison, Chris J. and Hashimoto, Tatsunori},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  note      = {ToolEmu; arXiv:2309.15817}
 }
 
-@article{wang2024agentdojo,
-  title={{AgentDojo}: A Benchmark for LLM-as-Agent},
-  author={Wang, Jianguo and Tang, Ye and Ji, Xueling},
-  journal={arXiv preprint arXiv:2405.03963},
-  year={2024}
+@inproceedings{debenedetti2024agentdojo,
+  title     = {{AgentDojo}: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for {LLM} Agents},
+  author    = {Debenedetti, Edoardo and Zhang, Jie and Balunovi{\'c}, Mislav and Beurer-Kellner, Luca and Fischer, Marc and Tram{\`e}r, Florian},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS) Datasets and Benchmarks Track},
+  year      = {2024},
+  note      = {arXiv:2406.13352}
 }
 
-@article{ouyang2022training,
-  title={Training language models to follow instructions with human feedback},
-  author={Ouyang, Long and Wu, Jeffrey and Jiang, Xu and others},
-  journal={arXiv preprint arXiv:2203.02155},
-  year={2022}
+@inproceedings{zhan2024injecagent,
+  title     = {{InjecAgent}: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents},
+  author    = {Zhan, Qiusi and Liang, Zhixiang and Ying, Zifan and Kang, Daniel},
+  booktitle = {Findings of the Association for Computational Linguistics (ACL)},
+  year      = {2024},
+  note      = {arXiv:2403.02691}
 }
 
-@article{bai2022training,
-  title={Training a Helpful and Harmless AI Assistant with Reinforcement Learning from Human Feedback},
-  author={Bai, Yuntao and Jones, Andy and Ndousse, Kamal and others},
-  journal={arXiv preprint arXiv:2204.05862},
-  year={2022}
+@inproceedings{andriushchenko2025agentharm,
+  title     = {{AgentHarm}: A Benchmark for Measuring Harmfulness of {LLM} Agents},
+  author    = {Andriushchenko, Maksym and Souly, Alexandra and Dziemian, Mateusz and Duenas, Derek and Lin, Maxwell and Wang, Justin and Hendrycks, Dan and Zou, Andy and Kolter, Zico and Fredrikson, Matt and Winsor, Eric and Wynne, Jerome and Gal, Yarin and Davies, Xander},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2025},
+  note      = {arXiv:2410.09024}
 }
 
-@article{christiano2017deep,
-  title={Deep Reinforcement Learning from Human Preferences},
-  author={Christiano, Paul F and Leike, Jan and Brown, Tom B and others},
-  journal={Advances in Neural Information Processing Systems},
-  year={2017}
+@inproceedings{yuan2024rjudge,
+  title     = {{R-Judge}: Benchmarking Safety Risk Awareness for {LLM} Agents},
+  author    = {Yuan, Tongxin and He, Zhiwei and Dong, Lingzhong and Wang, Yiming and Zhao, Ruijie and Xia, Tian and Xu, Lizhen and Zhou, Binglin and Li, Fangqi and Zhang, Zhuosheng and Wang, Rui and Liu, Gongshen},
+  booktitle = {Findings of the Association for Computational Linguistics (EMNLP)},
+  year      = {2024},
+  note      = {arXiv:2401.10019}
 }
 
-@article{openai2023gpt4,
-  title={{GPT-4} Technical Report},
-  author={OpenAI},
-  journal={arXiv preprint arXiv:2303.08774},
-  year={2023}
+@article{yao2024taubench,
+  title   = {$\tau$-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains},
+  author  = {Yao, Shunyu and Shinn, Noah and Razavi, Pedram and Narasimhan, Karthik},
+  journal = {arXiv preprint arXiv:2406.12045},
+  year    = {2024}
 }
 
-@article{gemini2024,
-  title={{Gemini 2.0}},
-  author={Google Deepmind},
-  journal={},
-  year={2024}
+% ---------------------------------------------------------------------------
+% Prompt injection: attacks and design-level defenses
+% ---------------------------------------------------------------------------
+
+@inproceedings{greshake2023injection,
+  title     = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
+  author    = {Greshake, Kai and Abdelnabi, Sahar and Mishra, Shailesh and Endres, Christoph and Holz, Thorsten and Fritz, Mario},
+  booktitle = {ACM Workshop on Artificial Intelligence and Security (AISec)},
+  year      = {2023},
+  note      = {arXiv:2302.12173}
 }
 
-@article{touvron2023llama,
-  title={{Llama}: Open and Efficient Foundation Language Models},
-  author={Touvron, Hugo and Martin, Louis and Stone, Kevin and others},
-  journal={arXiv preprint arXiv:2302.13971},
-  year={2023}
+@inproceedings{perez2022ignore,
+  title     = {Ignore Previous Prompt: Attack Techniques for Language Models},
+  author    = {Perez, F{\'a}bio and Ribeiro, Ian},
+  booktitle = {NeurIPS Workshop on {ML} Safety},
+  year      = {2022},
+  note      = {arXiv:2211.09527}
 }
 
-@article{jiang2023mistral,
-  title={{Mistral} 7B},
-  author={Jiang, Albert Q and Sablayrolles, Alexandre and Mensch, Arthur and others},
-  journal={arXiv preprint arXiv:2310.06825},
-  year={2023}
+@article{wallace2024hierarchy,
+  title   = {The Instruction Hierarchy: Training {LLMs} to Prioritize Privileged Instructions},
+  author  = {Wallace, Eric and Xiao, Kai and Leike, Reimar and Weng, Lilian and Heidecke, Johannes and Beutel, Alex},
+  journal = {arXiv preprint arXiv:2404.13208},
+  year    = {2024}
 }
 
-@article{anil2024gemini2,
-  title={{Gemini 2.0}},
-  author={Anil, Rohan and Borgeaud, Sebastian and Wu, Yonghui and others},
-  journal={arXiv preprint},
-  year={2024}
+@article{debenedetti2025camel,
+  title   = {Defeating Prompt Injections by Design},
+  author  = {Debenedetti, Edoardo and Shumailov, Ilia and Fan, Tianqi and Hayes, Jamie and Carlini, Nicholas and Fabian, Daniel and Kern, Christoph and Shi, Chongyang and Terzis, Andreas and Tram{\`e}r, Florian},
+  journal = {arXiv preprint arXiv:2503.18813},
+  year    = {2025},
+  note    = {CaMeL}
 }
 
-@article{yang2024qwen,
-  title={{Qwen}}: Open-Source Causal Language Models},
-  author={Yang, Jinze and others},
-  journal={arXiv preprint arXiv:2309.16609},
-  year={2023}
+@article{perez2022redteaming,
+  title   = {Red Teaming Language Models with Language Models},
+  author  = {Perez, Ethan and Huang, Saffron and Song, Francis and Cai, Trevor and Ring, Roman and Aslanides, John and Glaese, Amelia and McAleese, Nat and Irving, Geoffrey},
+  journal = {arXiv preprint arXiv:2202.03286},
+  year    = {2022}
 }
 
-@article{carlini2019poisoning,
-  title={Poisoning Attacks against Support Vector Machines},
-  author={Carlini, Nicholas and Wagner, David},
-  journal={arXiv preprint arXiv:1206.6389},
-  year={2012}
+% ---------------------------------------------------------------------------
+% Financial LLMs and financial safety benchmarks
+% ---------------------------------------------------------------------------
+
+@article{wu2023bloomberggpt,
+  title   = {{BloombergGPT}: A Large Language Model for Finance},
+  author  = {Wu, Shijie and Irsoy, Ozan and Lu, Steven and Dabravolski, Vadim and Dredze, Mark and Gehrmann, Sebastian and Kambadur, Prabhanjan and Rosenberg, David and Mann, Gideon},
+  journal = {arXiv preprint arXiv:2303.17564},
+  year    = {2023}
 }
 
-@article{goodfellow2014explaining,
-  title={Explaining and Harnessing Adversarial Examples},
-  author={Goodfellow, Ian J and Shlens, Jonathon and Szegedy, Christian},
-  journal={arXiv preprint arXiv:1412.6572},
-  year={2014}
+@article{yang2026finvault,
+  title   = {{FinVault}: Benchmarking Financial Agent Safety in Execution-Grounded Environments},
+  author  = {Yang, Zhi and Li, Runguo and Qiang, Qiqi and Wang, Jiashun and Lou, Fangqi and others},
+  journal = {arXiv preprint arXiv:2601.07853},
+  year    = {2026}
 }
 
-@inproceedings{carlini2018towards,
-  title={Towards Evaluating the Robustness of Neural Networks},
-  author={Carlini, Nicolas and Wagner, David},
-  booktitle={2016 IEEE Symposium on Security and Privacy (SP)},
-  year={2016}
+@article{hou2026finsafetybench,
+  title   = {{FinSafetyBench}: Evaluating {LLM} Safety in Real-World Financial Scenarios},
+  author  = {Hou, Yutao and Jiang, Yihan and Xie, Yuhan and Yang, Jian and Zhang, Liwen and Huang, Hailiang and Chen, Guanhua and Chen, Yun},
+  journal = {arXiv preprint arXiv:2605.00706},
+  year    = {2026}
 }
 
-@article{jimenez2023sparrow,
-  title{{Sparrow: Scalable Teaching of Abstract Reasoning through Writing}},
-  author={Jimenez, Carlos E and others},
-  journal={arXiv preprint arXiv:2309.10691},
-  year={2023}
-}
-
-@article{wallace2021universal,
-  title={Universal Adversarial Triggers for Attacking and Analyzing {NLP}},
-  author={Wallace, Eric and Dasgupta, Shi and Gardent, Claire and others},
-  journal={arXiv preprint arXiv:1908.07125},
-  year={2019}
-}
-
-@article{prompting2023,
-  title={Prompt Injection Attacks and Defenses in Large Language Models: A Survey},
-  author={Liu, Steven and Ullman, Tasneem},
-  journal={arXiv preprint},
-  year={2023}
-}
-
-@book{compliance2023,
-  title={Regulatory Compliance and Financial Controls},
-  author={Loughran, Tim and McDonald, Bill},
-  year={2023}
-}
-
-@article{efron1979bootstrap,
-  title={Bootstrap Methods: Another Look at the Jackknife},
-  author={Efron, Bradley},
-  journal={The Annals of Statistics},
-  volume={7},
-  number={1},
-  pages={1--26},
-  year={1979}
-}
+% ---------------------------------------------------------------------------
+% Statistical methods
+% ---------------------------------------------------------------------------
 
 @article{wilson1927probable,
-  title={Probable Inference, the Law of Succession, and Statistical Inference},
-  author={Wilson, Edwin B},
-  journal={Journal of the American Statistical Association},
-  volume={22},
-  number={158},
-  pages={209--212},
-  year={1927}
+  title   = {Probable Inference, the Law of Succession, and Statistical Inference},
+  author  = {Wilson, Edwin B.},
+  journal = {Journal of the American Statistical Association},
+  volume  = {22},
+  number  = {158},
+  pages   = {209--212},
+  year    = {1927}
 }
 
 @article{agresti1998approximate,
-  title={Approximate is Better than ``Exact'' for Interval Estimation of Binomial Proportions},
-  author={Agresti, Alan and Coull, Brent A},
-  journal={The American Statistician},
-  volume={52},
-  number={2},
-  pages={119--126},
-  year={1998}
+  title   = {Approximate Is Better than ``Exact'' for Interval Estimation of Binomial Proportions},
+  author  = {Agresti, Alan and Coull, Brent A.},
+  journal = {The American Statistician},
+  volume  = {52},
+  number  = {2},
+  pages   = {119--126},
+  year    = {1998}
 }
 
-@book{hollander1973nonparametric,
-  title={Nonparametric Statistical Methods},
-  author={Hollander, Myles and Wolfe, Douglas A},
-  year={1973}
+@article{efron1979bootstrap,
+  title   = {Bootstrap Methods: Another Look at the Jackknife},
+  author  = {Efron, Bradley},
+  journal = {The Annals of Statistics},
+  volume  = {7},
+  number  = {1},
+  pages   = {1--26},
+  year    = {1979}
 }
 
-@article{mnih2013playing,
-  title={Playing {Atari} with Deep Reinforcement Learning},
-  author={Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David},
-  journal={arXiv preprint arXiv:1312.5602},
-  year={2013}
+@article{ernst2004permutation,
+  title   = {Permutation Methods: A Basis for Exact Inference},
+  author  = {Ernst, Michael D.},
+  journal = {Statistical Science},
+  volume  = {19},
+  number  = {4},
+  pages   = {676--685},
+  year    = {2004}
 }
 
-@article{silver2016mastering,
-  title={Mastering the Game of {Go} with Deep Neural Networks and Tree Search},
-  author={Silver, David and Huang, Aja and Maddison, Chris J and others},
-  journal={Nature},
-  volume={529},
-  number={7587},
-  pages={484--489},
-  year={2016}
+@book{good2005permutation,
+  title     = {Permutation, Parametric, and Bootstrap Tests of Hypotheses},
+  author    = {Good, Phillip I.},
+  edition   = {3rd},
+  publisher = {Springer},
+  year      = {2005}
 }
 
-@article{li2023language,
-  title={Language Models as Zero-Shot Planners: Extracting Actionable Knowledge for Embodied Agents},
-  author={Li, Wenlong and others},
-  journal={arXiv preprint arXiv:2201.07207},
-  year={2022}
+% ---------------------------------------------------------------------------
+% Regulatory and control-design references
+% ---------------------------------------------------------------------------
+
+@misc{usc5324,
+  title        = {31 {U.S.C.} \S~5324 --- Structuring Transactions to Evade Reporting Requirement Prohibited},
+  author       = {{United States Code}},
+  howpublished = {Bank Secrecy Act},
+  year         = {1986}
 }
 
-@article{schick2024toolemu,
-  title={{ToolEmu}: An Emulation of {LLM-based} Agents as Tools},
-  author={Schick, Timo and others},
-  journal={},
-  year={2024}
+@misc{cfr1010311,
+  title        = {31 {C.F.R.} \S~1010.311 --- Filing Obligations for Reports of Transactions in Currency},
+  author       = {{U.S. Department of the Treasury, FinCEN}},
+  year         = {2011}
 }
 
-@misc{lm-eval-harness,
-  title={{lm-evaluation-harness}},
-  author={EleutherAI},
-  howpublished={\url{https://github.com/EleutherAI/lm-evaluation-harness}},
-  year={2023}
+@misc{sox2002,
+  title        = {Sarbanes--Oxley Act of 2002, {Pub.\ L.\ No.\ 107-204}, \S~404: Management Assessment of Internal Controls},
+  author       = {{United States Congress}},
+  year         = {2002}
+}
+
+% ---------------------------------------------------------------------------
+% Tooling
+% ---------------------------------------------------------------------------
+
+@misc{lmevalharness,
+  title        = {A Framework for Few-Shot Language Model Evaluation ({lm-evaluation-harness})},
+  author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and others},
+  howpublished = {\url{https://github.com/EleutherAI/lm-evaluation-harness}},
+  year         = {2023}
 }
 
 @misc{ollama,
-  title={Ollama: Get up and running with large language models locally},
-  author={Ollama Contributors},
-  howpublished={\url{https://ollama.ai}},
-  year={2024}
-}
-
-@misc{openai-api,
-  title={OpenAI {API} Documentation},
-  author={OpenAI},
-  howpublished={\url{https://platform.openai.com/docs}},
-  year={2024}
-}
-
-@article{red-teaming2022,
-  title={Red Teaming {AI} Systems for Safety},
-  author={Brundage, Miles and others},
-  journal={arXiv preprint arXiv:2202.03286},
-  year={2022}
-}
-
-@article{soceanu2023behavioral,
-  title={Behavioral Cloning from Crowd Demonstrations for Autonomous Driving},
-  author={Soceanu, O and others},
-  journal={},
-  year={2023}
-}
-
-@inproceedings{jimenez2023can,
-  title={Can {{AI}} Code {{Solve}} {{Real-World Problems}}?},
-  author={Jimenez, Carlos E and others},
-  booktitle={Advances in Neural Information Processing Systems},
-  year={2023}
+  title        = {Ollama: Get Up and Running with Large Language Models Locally},
+  author       = {{Ollama Contributors}},
+  howpublished = {\url{https://ollama.com}},
+  year         = {2024}
 }
