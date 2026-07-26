@@ -332,8 +332,14 @@ _ATTACK_BUILDERS = [
 
 
 def generate_scenarios(seed: int = 0, per_threat: int = 6) -> list[Scenario]:
-    """Generate a deterministic suite: ``per_threat`` cases for each of the 7
-    attack threats plus ``per_threat`` benign controls."""
+    """Generate a deterministic suite: ``per_threat`` cases from each of the 7
+    attack builders plus ``per_threat`` benign controls.
+
+    The builders span 6 scored categories, not 7: ``T3_sanctions_evasion`` has
+    two builders (explicit skip request, and homoglyph disguise) and so receives
+    twice as many scenarios as the others. ``T1_indirect_injection`` has no
+    builder -- it is the delivery vector for all of them, not an outcome.
+    """
     rng = random.Random(seed)
     scenarios: list[Scenario] = []
     for builder in _ATTACK_BUILDERS:

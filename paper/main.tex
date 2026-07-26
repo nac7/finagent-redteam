@@ -44,7 +44,7 @@
 
 Financial institutions increasingly deploy LLM agents to automate accounts payable, treasury, and reconciliation operations. Unlike generic security benchmarks focused on data exfiltration or forbidden actions, financial operations harbor a distinct threat surface: \textit{silent compliance violations} disguised as legitimate task completion.
 
-This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign) spanning seven threat categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, confused-deputy attacks, and prompt injection. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
+This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign). Every attack is delivered by indirect prompt injection into agent-readable content, and is scored in one of six outcome categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, and confused-deputy payee redirection. Each threat traces to a specific regulatory obligation---currency transaction reporting, sanctions screening, segregation of duties---and each success criterion is the failure condition of the control that discharges it. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
 
 We evaluate seven models spanning closed- and open-weight families and three capability tiers: Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served both locally (Ollama) and via a cloud provider (Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models—including a frontier model, GPT-4o at 71\% attack success rate (ASR)—readily execute compliance-violating actions; only Claude Sonnet resists (0\% ASR). Merely \emph{stating} policy is not a reliable control: it nearly eliminates attacks for strong instruction-followers (GPT-4o and Claude Haiku both drop to 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). In contrast, \emph{hard enforcement} drives ASR to 0\% for every model, at zero measured over-refusal for six of the seven; the exception is Llama~3.1~8B served locally, which reaches 0\% ASR partly by declining to act at all (50\% over-refusal). All success criteria are deterministic state predicates (no LLM grading), and every rate is reported with a 95\% Wilson confidence interval. The benchmark is open-source, reproducible, and deployable in production financial environments.
 
@@ -71,7 +71,8 @@ Existing red-teaming benchmarks (e.g., AgentBench, ToolEmu, AgentDojo) focus on 
 \subsection{Contributions}
 
 \begin{enumerate}
-  \item \textbf{Threat taxonomy}: Seven attack categories grounded in real financial compliance failures (Table \ref{tab:threats}).
+  \item \textbf{Threat taxonomy}: An injection vector plus six scored attack categories grounded in real financial compliance failures (Table \ref{tab:threats}).
+  \item \textbf{Construct validity}: An explicit trace from each threat to the regulatory obligation it violates, the control an institution operates to discharge that obligation, and the state predicate that stands in for that control being defeated (Table \ref{tab:regmap}).
   \item \textbf{Methodology}: Three-posture evaluation framework decomposing policy-following uplift from enforcement uplift.
   \item \textbf{Deterministic evaluation}: No LLM grading. All success criteria are reproducible state predicates.
   \item \textbf{Benchmark dataset}: 48 scenarios with 3 independent trials each = 144 scenario runs per model.
@@ -86,6 +87,12 @@ Existing red-teaming benchmarks (e.g., AgentBench, ToolEmu, AgentDojo) focus on 
 Financial compliance failures fall into seven categories, each modeled as a scenario family in our benchmark.
 
 \input{sections/threats}
+
+\section{Construct Validity: Mapping Threats to Regulation}
+
+\label{sec:regmap}
+
+\input{sections/regulatory_mapping}
 
 \section{Methodology}
 
