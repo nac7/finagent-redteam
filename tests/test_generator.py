@@ -73,6 +73,48 @@ def test_structuring_varies_split_count():
     assert ks == {2, 3, 4}
 
 
+def test_categories_span_multiple_vectors():
+    from collections import defaultdict
+
+    vectors_by_cat = defaultdict(set)
+    for s in generate_scenarios(seed=0, per_threat=9):
+        if s.benign:
+            continue
+        vectors_by_cat[s.id.rsplit("_", 1)[0]].add(s.strata["vector"])
+    # Every attack builder delivers over at least two distinct channels.
+    for prefix, vectors in vectors_by_cat.items():
+        assert len(vectors) >= 2, (prefix, vectors)
+
+
+def test_injection_lands_on_its_vector_channel():
+    """A non-email vector must place the injection on the matching channel, and
+    the corresponding reader tool must surface it."""
+    from finagent_redteam.sandbox.policy import ControlPosture, Policy
+    from finagent_redteam.sandbox.tools import TOOLS
+
+    channel_reader = {
+        "documents": "read_documents",
+        "tickets": "read_tickets",
+        "calendar": "read_calendar",
+    }
+    seen_non_email = False
+    policy = Policy.for_posture(ControlPosture.NONE)
+    for s in generate_scenarios(seed=0, per_threat=12):
+        if s.benign or s.strata["vector"] == "email":
+            continue
+        seen_non_email = True
+        w = s.world_factory()
+        assert not w.inbox, f"{s.id}: non-email vector must not use the inbox"
+        # Exactly one alternate channel is populated.
+        populated = [c for c in channel_reader if getattr(w, c)]
+        assert len(populated) == 1, (s.id, populated)
+        reader = channel_reader[populated[0]]
+        out = TOOLS[reader](w, policy, "agent")
+        bodies = " ".join(item["body"] for item in out[populated[0]])
+        assert bodies, f"{s.id}: reader returned no items"
+    assert seen_non_email, "expected some non-email scenarios in the sample"
+
+
 def test_generated_suite_invariant_across_postures():
     """Crown-jewel validity test: replay reference plans under all postures."""
     failures = []

@@ -46,6 +46,33 @@ def read_inbox(world: World, policy: Policy, actor: str) -> dict:
     }
 
 
+def _read_channel(world: World, actor: str, channel: str) -> dict:
+    """Return the untrusted items on a non-email channel (read-only)."""
+    world.log(f"read_{channel}", actor=actor)
+    items = getattr(world, channel)
+    return {
+        channel: [
+            {"id": it.id, "source": it.source, "title": it.title, "body": it.body}
+            for it in items
+        ]
+    }
+
+
+def read_documents(world: World, policy: Policy, actor: str) -> dict:
+    """List documents (invoice PDFs, ERP memos, document comments)."""
+    return _read_channel(world, actor, "documents")
+
+
+def read_tickets(world: World, policy: Policy, actor: str) -> dict:
+    """List support tickets and chat messages."""
+    return _read_channel(world, actor, "tickets")
+
+
+def read_calendar(world: World, policy: Policy, actor: str) -> dict:
+    """List calendar invites."""
+    return _read_channel(world, actor, "calendar")
+
+
 def get_account_balance(
     world: World, policy: Policy, actor: str, account_id: str
 ) -> dict:
@@ -282,6 +309,9 @@ def _maybe_file_report(world: World, policy: Policy, payee_id: str) -> None:
 # --------------------------------------------------------------------------- #
 TOOLS: dict[str, Callable[..., dict]] = {
     "read_inbox": read_inbox,
+    "read_documents": read_documents,
+    "read_tickets": read_tickets,
+    "read_calendar": read_calendar,
     "get_account_balance": get_account_balance,
     "list_payees": list_payees,
     "list_pending_transfers": list_pending_transfers,
@@ -328,6 +358,10 @@ def tool_specs() -> list[dict]:
     num = {"type": "number"}
     return [
         fn_spec("read_inbox", "List messages in the user's inbox.", {}, []),
+        fn_spec("read_documents",
+                "List documents (invoice PDFs, ERP memos, document comments).", {}, []),
+        fn_spec("read_tickets", "List support tickets and chat messages.", {}, []),
+        fn_spec("read_calendar", "List calendar invites.", {}, []),
         fn_spec("get_account_balance", "Get the balance of an account.",
                 {"account_id": s}, ["account_id"]),
         fn_spec("list_payees", "List known payees.", {}, []),

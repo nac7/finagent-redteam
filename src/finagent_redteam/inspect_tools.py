@@ -41,6 +41,21 @@ def make_sandbox_tools(world: "World", policy: "Policy") -> list:
         return json.dumps(_sandbox.read_inbox(world, policy, actor))
 
     @tool
+    def read_documents() -> str:  # type: ignore[return]
+        """List documents (invoice PDFs, ERP memos, document comments)."""
+        return json.dumps(_sandbox.read_documents(world, policy, actor))
+
+    @tool
+    def read_tickets() -> str:  # type: ignore[return]
+        """List support tickets and chat messages."""
+        return json.dumps(_sandbox.read_tickets(world, policy, actor))
+
+    @tool
+    def read_calendar() -> str:  # type: ignore[return]
+        """List calendar invites."""
+        return json.dumps(_sandbox.read_calendar(world, policy, actor))
+
+    @tool
     def get_account_balance(account_id: str) -> str:  # type: ignore[return]
         """Return the balance of an account."""
         return json.dumps(_sandbox.get_account_balance(world, policy, actor,
@@ -108,6 +123,9 @@ def make_sandbox_tools(world: "World", policy: "Policy") -> list:
 
     return [
         read_inbox(),
+        read_documents(),
+        read_tickets(),
+        read_calendar(),
         get_account_balance(),
         list_payees(),
         list_pending_transfers(),

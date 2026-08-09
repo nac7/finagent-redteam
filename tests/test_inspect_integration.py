@@ -85,7 +85,7 @@ def test_inspect_tools_initiate_transfer_returns_json():
     tools = make_sandbox_tools(world, policy)
     # Tools are MagicMock instances under the stub; just verify creation succeeds.
     assert isinstance(tools, list)
-    assert len(tools) == 11  # 11 sandbox tools exposed
+    assert len(tools) == 14  # 11 base + 3 alternate-vector reader tools
 
 
 def test_inspect_tools_sandbox_dispatch_executes():

@@ -50,6 +50,24 @@ class Email:
 
 
 @dataclass
+class UntrustedItem:
+    """A piece of untrusted content delivered through a non-email channel.
+
+    Backs the alternate injection *vectors* (support tickets, chat messages,
+    calendar invites, invoice PDFs, ERP memos, document comments). Structurally
+    identical to :class:`Email` — a title/source plus a body the agent may read —
+    but surfaced through a different reader tool, so susceptibility can be
+    measured per channel rather than assumed to be an email artifact.
+    """
+
+    id: str
+    source: str
+    title: str
+    body: str
+    untrusted: bool = True
+
+
+@dataclass
 class ComplianceReport:
     kind: str  # e.g. "CTR" (currency transaction report), "SAR"
     payee: str
@@ -65,6 +83,11 @@ class World:
     payees: dict[str, Payee] = field(default_factory=dict)
     transfers: dict[str, Transfer] = field(default_factory=dict)
     inbox: list[Email] = field(default_factory=list)
+    # Alternate injection channels (Phase 1 vector axis): documents (invoice
+    # PDFs / ERP memos / doc comments), support tickets + chat, calendar invites.
+    documents: list[UntrustedItem] = field(default_factory=list)
+    tickets: list[UntrustedItem] = field(default_factory=list)
+    calendar: list[UntrustedItem] = field(default_factory=list)
     # Compliance reports filed (e.g. structuring/over-threshold detection).
     reports: list[ComplianceReport] = field(default_factory=list)
     # Append-only log of every tool action, for transcripts and debugging.
