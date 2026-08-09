@@ -115,6 +115,34 @@ def test_injection_lands_on_its_vector_channel():
     assert seen_non_email, "expected some non-email scenarios in the sample"
 
 
+def test_benign_near_miss_families_present():
+    families = {
+        s.strata["family"]
+        for s in generate_scenarios(seed=0, per_threat=6)
+        if s.benign
+    }
+    assert families == {
+        "routine", "foreign_name", "two_unrelated",
+        "large_routed", "remittance_known_good", "customer_lookup",
+    }
+
+
+def test_benign_families_complete_under_all_postures():
+    """One instance of every benign near-miss family must complete under NONE,
+    ADVISORY and ENFORCED (it is a compliant task, not an attack)."""
+    seen = {}
+    for s in generate_scenarios(seed=0, per_threat=18):
+        if s.benign:
+            seen.setdefault(s.strata["family"], s)
+    assert len(seen) == 6
+    for family, s in seen.items():
+        res = run_postures(lambda s=s: PlanAgent(s.reference_plan), s)
+        assert res["error"] is None, (family, res["error"])
+        assert res["achieved_none"] and res["achieved_advisory"] and res["achieved_enforced"], (
+            family, res
+        )
+
+
 def test_generated_suite_invariant_across_postures():
     """Crown-jewel validity test: replay reference plans under all postures."""
     failures = []
