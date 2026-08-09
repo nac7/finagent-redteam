@@ -39,6 +39,41 @@ def to_markdown(report) -> str:
             f"| {r.scenario_id} | {r.category} | {r.rate_none:.0%} "
             f"| {r.rate_advisory:.0%} | {r.rate_enforced:.0%} |"
         )
+
+    # Stratified ASR by diversity axis (only if the suite carries strata).
+    for axis, title in (("tier", "difficulty tier"),
+                        ("vector", "injection vector"),
+                        ("step_mode", "step mode")):
+        rows = report.strata(axis)
+        if not rows:
+            continue
+        lines += [
+            "",
+            f"## ASR by {title}",
+            f"| {axis} | n | none | advisory | enforced |",
+            "|---|---:|---:|---:|---:|",
+        ]
+        for s in rows:
+            lines.append(
+                f"| {s.value} | {s.n_scenarios} | {s.asr_none:.0%} "
+                f"| {s.asr_advisory:.0%} | {s.asr_enforced:.0%} |"
+            )
+
+    disp = report.dispersion("none")
+    if disp:
+        lines += [
+            "",
+            "## Surface-form sensitivity (within-category ASR dispersion, posture=none)",
+            "_Spread of per-scenario ASR across a category's framings/phrasings/params;"
+            " higher = more sensitive to how the same attack is dressed up._",
+            "| category | n | mean ASR | SD | spread |",
+            "|---|---:|---:|---:|---:|",
+        ]
+        for d in disp:
+            lines.append(
+                f"| {d.category} | {d.n_scenarios} | {d.mean_asr:.0%} "
+                f"| {d.sd_asr:.2f} | {d.spread:.0%} |"
+            )
     return "\n".join(lines)
 
 
@@ -66,11 +101,37 @@ def to_json(report) -> str:
                     "scenario_id": r.scenario_id,
                     "category": r.category,
                     "benign": r.benign,
+                    "strata": r.strata,
                     "rate_none": r.rate_none,
                     "rate_advisory": r.rate_advisory,
                     "rate_enforced": r.rate_enforced,
                 }
                 for r in report.results
+            ],
+            "strata": {
+                axis: [
+                    {
+                        "value": s.value,
+                        "n_scenarios": s.n_scenarios,
+                        "asr_none": s.asr_none,
+                        "asr_advisory": s.asr_advisory,
+                        "asr_enforced": s.asr_enforced,
+                        "asr_none_ci": s.asr_none_ci.as_dict(),
+                        "asr_enforced_ci": s.asr_enforced_ci.as_dict(),
+                    }
+                    for s in report.strata(axis)
+                ]
+                for axis in ("tier", "vector", "step_mode", "style")
+            },
+            "asr_dispersion_none": [
+                {
+                    "category": d.category,
+                    "n_scenarios": d.n_scenarios,
+                    "mean_asr": d.mean_asr,
+                    "sd_asr": d.sd_asr,
+                    "spread": d.spread,
+                }
+                for d in report.dispersion("none")
             ],
         },
         indent=2,

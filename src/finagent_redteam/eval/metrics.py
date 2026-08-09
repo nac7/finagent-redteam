@@ -137,6 +137,42 @@ class CategoryStat:
     asr_enforced_ci: CI = field(default_factory=lambda: CI(0.0, 1.0))
 
 
+@dataclass
+class StratumStat:
+    """Attack-success summary for one value of a diversity axis (tier / vector /
+    step_mode / style), across the three postures."""
+
+    axis: str
+    value: str
+    n_scenarios: int
+    asr_none: float
+    asr_advisory: float
+    asr_enforced: float
+    asr_none_ci: CI = field(default_factory=lambda: CI(0.0, 1.0))
+    asr_advisory_ci: CI = field(default_factory=lambda: CI(0.0, 1.0))
+    asr_enforced_ci: CI = field(default_factory=lambda: CI(0.0, 1.0))
+
+
+@dataclass
+class DispersionStat:
+    """Within-category dispersion of per-scenario ASR at one posture.
+
+    A *proxy* for phrasing/parameter sensitivity: each attack category is
+    generated as many surface instances (framings, phrasings, params), so a low
+    spread means the model behaves consistently regardless of surface form and a
+    high spread means it is sensitive to how the same attack is dressed up. Not a
+    controlled single-attack paraphrase sweep (that needs a dedicated fixture);
+    it is the honest, computable signal the current suite supports.
+    """
+
+    category: str
+    posture: str
+    n_scenarios: int
+    mean_asr: float
+    sd_asr: float
+    spread: float  # max - min of the per-scenario rates
+
+
 def _mean(xs: list[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
 
@@ -201,6 +237,71 @@ def category_breakdown(results: list) -> list[CategoryStat]:
         )
         for cat, rs in sorted(by_cat.items())
     ]
+
+
+def stratified_breakdown(results: list, axis: str) -> list[StratumStat]:
+    """Per-stratum ASR across postures for a diversity ``axis`` (attack only).
+
+    ``axis`` is a key in each result's ``strata`` dict — ``"tier"``, ``"vector"``,
+    ``"step_mode"`` or ``"style"``. Scenarios lacking strata or that key are
+    skipped. Returns one :class:`StratumStat` per axis value, sorted by value.
+    """
+    by_val: dict[str, list] = {}
+    for r in results:
+        if r.benign:
+            continue
+        strata = getattr(r, "strata", None) or {}
+        value = strata.get(axis)
+        if value is None:
+            continue
+        by_val.setdefault(str(value), []).append(r)
+    return [
+        StratumStat(
+            axis=axis,
+            value=value,
+            n_scenarios=len(rs),
+            asr_none=_mean([r.rate_none for r in rs]),
+            asr_advisory=_mean([r.rate_advisory for r in rs]),
+            asr_enforced=_mean([r.rate_enforced for r in rs]),
+            asr_none_ci=wilson_ci(*_pool(rs, "successes_none")),
+            asr_advisory_ci=wilson_ci(*_pool(rs, "successes_advisory")),
+            asr_enforced_ci=wilson_ci(*_pool(rs, "successes_enforced")),
+        )
+        for value, rs in sorted(by_val.items())
+    ]
+
+
+def _sd(xs: list[float]) -> float:
+    if len(xs) < 2:
+        return 0.0
+    m = _mean(xs)
+    return math.sqrt(sum((x - m) ** 2 for x in xs) / len(xs))
+
+
+def asr_dispersion(results: list, posture: str = "none") -> list[DispersionStat]:
+    """Within-category dispersion of per-scenario ASR at ``posture``.
+
+    ``posture`` is ``"none"`` (default; intrinsic susceptibility, where surface
+    form matters most), ``"advisory"`` or ``"enforced"``. Returns one
+    :class:`DispersionStat` per attack category, sorted by category.
+    """
+    rate_attr = f"rate_{posture}"
+    by_cat: dict[str, list[float]] = {}
+    for r in results:
+        if r.benign:
+            continue
+        by_cat.setdefault(r.category, []).append(getattr(r, rate_attr))
+    out = []
+    for cat, rates in sorted(by_cat.items()):
+        out.append(DispersionStat(
+            category=cat,
+            posture=posture,
+            n_scenarios=len(rates),
+            mean_asr=_mean(rates),
+            sd_asr=_sd(rates),
+            spread=(max(rates) - min(rates)) if rates else 0.0,
+        ))
+    return out
 
 
 # ============================================================================

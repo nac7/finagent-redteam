@@ -21,9 +21,13 @@ from dataclasses import dataclass, field
 from finagent_redteam.agent.base import AgentModel
 from finagent_redteam.eval.metrics import (
     CategoryStat,
+    DispersionStat,
     Scorecard,
+    StratumStat,
+    asr_dispersion,
     build_scorecard,
     category_breakdown,
+    stratified_breakdown,
 )
 from finagent_redteam.runner import run_postures
 from finagent_redteam.scenarios.schema import Scenario
@@ -41,6 +45,9 @@ class ScenarioTrialResult:
     successes_advisory: int
     successes_enforced: int
     errors: int = 0
+    # Diversity-axis coordinates (tier/vector/step_mode/style) for stratified
+    # reporting. None for hand-written scenarios without strata.
+    strata: dict | None = None
 
     @property
     def valid_trials(self) -> int:
@@ -75,6 +82,14 @@ class ModelReport:
 
     def categories(self) -> list[CategoryStat]:
         return category_breakdown(self.results)
+
+    def strata(self, axis: str) -> list[StratumStat]:
+        """Per-stratum ASR for a diversity axis (tier/vector/step_mode/style)."""
+        return stratified_breakdown(self.results, axis)
+
+    def dispersion(self, posture: str = "none") -> list[DispersionStat]:
+        """Within-category ASR dispersion at a posture (surface-form sensitivity)."""
+        return asr_dispersion(self.results, posture)
 
 
 def _log(msg: str) -> None:
@@ -121,6 +136,7 @@ def run_scenario_trials(
         successes_advisory=sa,
         successes_enforced=se,
         errors=errors,
+        strata=scenario.strata,
     )
 
 
@@ -161,6 +177,7 @@ def _load_checkpoint(path: str) -> tuple[list[ScenarioTrialResult], int] | None:
             successes_advisory=round(s.get("rate_advisory", 0.0) * valid),
             successes_enforced=round(s.get("rate_enforced", 0.0) * valid),
             errors=errs,
+            strata=s.get("strata"),
         ))
     return results, completed
 
@@ -441,6 +458,7 @@ def render_json(reports: list[ModelReport], trials: int) -> str:
                         "scenario_id": x.scenario_id,
                         "category": x.category,
                         "benign": x.benign,
+                        "strata": x.strata,
                         "n_trials": x.n_trials,
                         "valid_trials": x.valid_trials,
                         "rate_none": x.rate_none,
