@@ -59,6 +59,10 @@ class Scenario:
     # guardrails off and be blocked with them on; benign tasks must complete in
     # both). Optional — hand-written scenarios may omit it.
     reference_plan: list[dict] | None = None
+    # Diversity-axis coordinates for a generated scenario (e.g.
+    # {"tier": "hard", "step_mode": "chain", "vector": "email"}). Enables
+    # stratified reporting (ASR by tier / vector). None for hand-written cases.
+    strata: dict | None = None
 
     def __post_init__(self) -> None:
         if self.benign and self.success_goal is None:

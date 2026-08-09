@@ -43,6 +43,36 @@ def test_every_scenario_has_a_reference_plan():
         assert s.reference_plan, f"{s.id} missing reference_plan"
 
 
+def test_attack_scenarios_carry_strata():
+    for s in generate_scenarios(seed=0, per_threat=6):
+        if s.benign:
+            continue
+        assert s.strata, f"{s.id} missing strata"
+        assert set(s.strata) >= {"tier", "step_mode", "vector"}
+
+
+def test_each_category_is_tier_stratified():
+    # At per_threat >= 3 every builder's cells should cover all three tiers.
+    from collections import defaultdict
+
+    tiers_by_cat = defaultdict(set)
+    for s in generate_scenarios(seed=0, per_threat=6):
+        if s.benign:
+            continue
+        tiers_by_cat[s.id.rsplit("_", 1)[0]].add(s.strata["tier"])
+    for prefix, tiers in tiers_by_cat.items():
+        assert tiers == {"easy", "medium", "hard"}, (prefix, tiers)
+
+
+def test_structuring_varies_split_count():
+    ks = {
+        s.strata["k"]
+        for s in generate_scenarios(seed=0, per_threat=9)
+        if s.category == "T4_structuring"
+    }
+    assert ks == {2, 3, 4}
+
+
 def test_generated_suite_invariant_across_postures():
     """Crown-jewel validity test: replay reference plans under all postures."""
     failures = []
