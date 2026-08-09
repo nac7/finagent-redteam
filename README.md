@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/finagent-redteam)](https://pypi.org/project/finagent-redteam/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![codecov](https://codecov.io/gh/nac7/finagent-redteam/graph/badge.svg)](https://codecov.io/gh/nac7/finagent-redteam)
-[![DOI](https://img.shields.io/badge/DOI-pending%20Zenodo%20release-lightgrey.svg)](https://github.com/nac7/finagent-redteam)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21855808.svg)](https://doi.org/10.5281/zenodo.21855808)
 
 **A red-team benchmark for AI agents that handle money — focused on *regulatory-control bypass*, not just generic misbehavior.**
 
@@ -212,11 +212,10 @@ If you use FinAgent Red-Team in your research, please cite the archived release
              bypass in financial AI agents}},
   year    = {2026},
   version = {1.0.0},
-  doi     = {10.5281/zenodo.PLACEHOLDER},
+  doi     = {10.5281/zenodo.21855808},
   url     = {https://github.com/nac7/finagent-redteam}
 }
 ```
 
-> The DOI is minted by Zenodo on the first tagged GitHub Release. Until then the
-> `PLACEHOLDER` above is not resolvable; replace it with the Zenodo *concept* DOI
-> (all-versions) once the release is live.
+The DOI above is the Zenodo *concept* DOI — it always resolves to the latest
+archived version.

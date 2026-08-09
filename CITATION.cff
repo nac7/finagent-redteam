@@ -23,7 +23,7 @@ url: "https://github.com/nac7/finagent-redteam"
 # and add the same value to the README badge and the BibTeX block.
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.PLACEHOLDER"
+    value: "10.5281/zenodo.21855808"
     description: "Concept DOI (all versions) — backfill after first Zenodo release"
 keywords:
   - ai-agents
@@ -43,5 +43,5 @@ preferred-citation:
       given-names: Nachiket
   year: 2026
   version: "1.0.0"
-  doi: "10.5281/zenodo.PLACEHOLDER"
+  doi: "10.5281/zenodo.21855808"
   url: "https://github.com/nac7/finagent-redteam"
