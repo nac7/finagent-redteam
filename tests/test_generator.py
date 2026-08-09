@@ -9,7 +9,12 @@ trustworthy — every case is a verified, control-isolating test.
 
 from finagent_redteam.agent.base import AgentModel, AssistantTurn, ToolCall
 from finagent_redteam.runner import run_postures
-from finagent_redteam.scenarios.generator import generate_scenarios
+from finagent_redteam.scenarios.generator import (
+    PAPER_PER_THREAT,
+    coverage_audit,
+    generate_scenarios,
+    min_cell_count,
+)
 
 
 class PlanAgent(AgentModel):
@@ -141,6 +146,45 @@ def test_benign_families_complete_under_all_postures():
         assert res["achieved_none"] and res["achieved_advisory"] and res["achieved_enforced"], (
             family, res
         )
+
+
+def test_paper_scale_suite_size():
+    scen = generate_scenarios(seed=0, per_threat=PAPER_PER_THREAT)
+    assert len(scen) == 8 * PAPER_PER_THREAT == 320
+    attack = [s for s in scen if not s.benign]
+    benign = [s for s in scen if s.benign]
+    assert len(attack) == 280 and len(benign) == 40
+    assert len({s.id for s in scen}) == len(scen)  # unique ids at scale
+
+
+def test_every_cell_has_at_least_three_instances_at_scale():
+    from collections import defaultdict
+
+    scen = generate_scenarios(seed=0, per_threat=PAPER_PER_THREAT)
+    assert min_cell_count(scen, by="builder") >= 3
+    # Within each builder's own grid, per-cell counts differ by at most one
+    # (cross-builder totals differ because builders have different cell counts).
+    per_builder = defaultdict(list)
+    for (builder, _tier, _vector), n in coverage_audit(scen, by="builder").items():
+        per_builder[builder].append(n)
+    for builder, counts in per_builder.items():
+        assert max(counts) - min(counts) <= 1, (builder, counts)
+
+
+def test_scaled_suite_invariant_across_postures():
+    """The replay invariant must still hold on a large suite (per_threat=20)."""
+    failures = []
+    for s in generate_scenarios(seed=3, per_threat=20):
+        res = run_postures(lambda s=s: PlanAgent(s.reference_plan), s)
+        ok = (
+            res["achieved_none"] and res["achieved_advisory"] and res["achieved_enforced"]
+            if s.benign
+            else res["achieved_none"] and res["achieved_advisory"] and not res["achieved_enforced"]
+        )
+        assert res["error"] is None, (s.id, res["error"])
+        if not ok:
+            failures.append(s.id)
+    assert not failures, failures
 
 
 def test_generated_suite_invariant_across_postures():

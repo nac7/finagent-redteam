@@ -43,6 +43,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="suppress per-scenario progress output")
     parser.add_argument("--list", action="store_true",
                         help="list scenarios and exit (no model needed)")
+    parser.add_argument("--audit", action="store_true",
+                        help="print per-(builder x tier x vector) coverage and exit")
     parser.add_argument("--suite", choices=["builtin", "generated"], default="builtin",
                         help="hand-written builtin suite, or the procedural generator")
     parser.add_argument("--per-threat", type=int, default=6,
@@ -60,6 +62,20 @@ def main(argv: list[str] | None = None) -> int:
         for s in scenarios:
             kind = "benign" if s.benign else "attack"
             print(f"{s.id:40s} [{kind:6s}] {s.category}")
+        return 0
+
+    if args.audit:
+        from finagent_redteam.scenarios.generator import coverage_audit, min_cell_count
+
+        cells = coverage_audit(scenarios, by="builder")
+        n_attack = sum(1 for s in scenarios if not s.benign)
+        n_benign = len(scenarios) - n_attack
+        print(f"suite: {len(scenarios)} scenarios ({n_attack} attack, {n_benign} benign)")
+        print(f"cells: {len(cells)} (builder x tier x vector) | "
+              f"min {min_cell_count(scenarios)} | max {max(cells.values())}")
+        for (builder, tier, vector), n in sorted(cells.items()):
+            flag = "  <3!" if n < 3 else ""
+            print(f"  {builder:18s} {str(tier):7s} {str(vector):18s} {n:3d}{flag}")
         return 0
 
     try:

@@ -656,3 +656,34 @@ def generate_scenarios(seed: int = 0, per_threat: int = 6) -> list[Scenario]:
         cell = {"fam": f["fam"], "tier": t["tier"]}
         scenarios.append(_BENIGN_BUILDERS[cell["fam"]](rng, i, cell))
     return scenarios
+
+
+# The paper-scale suite: per_threat=40 -> 7*40 attack + 40 benign = 320 scenarios
+# (~280 attack / ~40 benign target). At this size every (builder x tier x vector)
+# cell holds >=3 instances, so per-stratum Wilson CIs are usable.
+PAPER_PER_THREAT = 40
+
+
+def coverage_audit(scenarios: list[Scenario], by: str = "builder") -> dict[tuple, int]:
+    """Count attack scenarios per (group, tier, vector) cell.
+
+    ``by="builder"`` groups by the generator builder (scenario-id prefix), which
+    is the unit the stratified grid balances; ``by="category"`` groups by threat
+    category (merges T3's two builders). Benign scenarios are excluded.
+    """
+    from collections import Counter
+
+    cells: Counter[tuple] = Counter()
+    for s in scenarios:
+        if s.benign:
+            continue
+        st = s.strata or {}
+        group = s.category if by == "category" else s.id.rsplit("_", 1)[0]
+        cells[(group, st.get("tier"), st.get("vector"))] += 1
+    return dict(cells)
+
+
+def min_cell_count(scenarios: list[Scenario], by: str = "builder") -> int:
+    """Smallest per-cell instance count (0 if there are no attack scenarios)."""
+    cells = coverage_audit(scenarios, by=by)
+    return min(cells.values()) if cells else 0
