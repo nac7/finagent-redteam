@@ -1,0 +1,31 @@
+{
+  "title": "FinAgent Red-Team: A benchmark for regulatory-control bypass in financial AI agents",
+  "description": "A red-team benchmark that evaluates LLM-based financial agents on regulatory-control bypass threats (sanctions evasion, payment structuring, dual-approval defeat, unauthorized transfer, data exfiltration, confused-deputy payee redirection, and homoglyph sanctions evasion) delivered by indirect prompt injection. Each scenario runs under three control postures (none, advisory, enforced), decomposing attack success into policy-following uplift and enforcement uplift. All success criteria are deterministic state predicates (no LLM grading), reported with 95% Wilson confidence intervals. Fully synthetic: no real money, accounts, or networks.",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Lele, Nachiket",
+      "affiliation": "Independent"
+    }
+  ],
+  "keywords": [
+    "ai-agents",
+    "agent-security",
+    "prompt-injection",
+    "financial-compliance",
+    "benchmark",
+    "red-teaming",
+    "sanctions-evasion",
+    "aml",
+    "llm-safety"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/nac7/finagent-redteam",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

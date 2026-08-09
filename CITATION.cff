@@ -11,13 +11,20 @@ abstract: >
 authors:
   - family-names: Lele
     given-names: Nachiket
-    email: lelenachiket07@gmail.com
+    email: lelenachiket991@gmail.com
     orcid: ""
-version: "0.2.0"
-date-released: "2026-06-01"
+version: "1.0.0"
+date-released: "2026-08-08"
 license: MIT
 repository-code: "https://github.com/nac7/finagent-redteam"
 url: "https://github.com/nac7/finagent-redteam"
+# DOI is minted by Zenodo on the first GitHub Release. After the release,
+# replace the placeholder below with the Zenodo *concept* DOI (all-versions),
+# and add the same value to the README badge and the BibTeX block.
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.PLACEHOLDER"
+    description: "Concept DOI (all versions) — backfill after first Zenodo release"
 keywords:
   - ai-agents
   - agent-security
@@ -35,4 +42,6 @@ preferred-citation:
     - family-names: Lele
       given-names: Nachiket
   year: 2026
+  version: "1.0.0"
+  doi: "10.5281/zenodo.PLACEHOLDER"
   url: "https://github.com/nac7/finagent-redteam"

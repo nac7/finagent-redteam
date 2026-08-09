@@ -5,6 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/finagent-redteam)](https://pypi.org/project/finagent-redteam/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![codecov](https://codecov.io/gh/nac7/finagent-redteam/graph/badge.svg)](https://codecov.io/gh/nac7/finagent-redteam)
+[![DOI](https://img.shields.io/badge/DOI-pending%20Zenodo%20release-lightgrey.svg)](https://github.com/nac7/finagent-redteam)
 
 **A red-team benchmark for AI agents that handle money — focused on *regulatory-control bypass*, not just generic misbehavior.**
 
@@ -201,4 +202,21 @@ MIT — see [LICENSE](LICENSE).
 
 ## Citation
 
-If you use FinAgent Red-Team, please cite it (see [CITATION.cff](CITATION.cff)).
+If you use FinAgent Red-Team in your research, please cite the archived release
+(see [CITATION.cff](CITATION.cff) for machine-readable metadata):
+
+```bibtex
+@software{lele2026finagent,
+  author  = {Lele, Nachiket},
+  title   = {{FinAgent Red-Team: A benchmark for regulatory-control
+             bypass in financial AI agents}},
+  year    = {2026},
+  version = {1.0.0},
+  doi     = {10.5281/zenodo.PLACEHOLDER},
+  url     = {https://github.com/nac7/finagent-redteam}
+}
+```
+
+> The DOI is minted by Zenodo on the first tagged GitHub Release. Until then the
+> `PLACEHOLDER` above is not resolvable; replace it with the Zenodo *concept* DOI
+> (all-versions) once the release is live.
