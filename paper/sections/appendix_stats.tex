@@ -70,7 +70,7 @@ This ensures results are identical across runs and machines.
 
 \subsection{Multiple Comparisons}
 
-The benchmark includes 63 pairwise comparisons (21 pairs × 3 postures). To maintain family-wise error rate, we apply a Bonferroni correction:
+The benchmark includes 63 pairwise comparisons (21 pairs $\times$ 3 postures). To maintain family-wise error rate, we apply a Bonferroni correction:
 
 \begin{equation}
 \alpha_{\text{corrected}} = \frac{\alpha}{63} = \frac{0.05}{63} \approx 0.0008
@@ -101,8 +101,8 @@ For smaller effects ($\Delta = 0.10$), power drops to 70\%. This is acceptable f
 We validate the bootstrap procedure on synthetic data:
 
 \begin{itemize}
-  \item \textbf{Two identical models}: All-zero outcomes vs.\ all-zero outcomes $\Rightarrow$ p-value ≈ 1.0 (no difference)
-  \item \textbf{Complete separation}: All-zero vs.\ all-one outcomes $\Rightarrow$ p-value ≈ 0.0 or 1.0 (absolute difference)
+  \item \textbf{Two identical models}: All-zero outcomes vs.\ all-zero outcomes $\Rightarrow$ p-value $\approx$ 1.0 (no difference)
+  \item \textbf{Complete separation}: All-zero vs.\ all-one outcomes $\Rightarrow$ p-value $\approx$ 0.0 or 1.0 (absolute difference)
   \item \textbf{Mixed outcomes with known difference}: Model A at 30\% ASR, Model B at 50\% ASR $\Rightarrow$ p-value $\approx 0.05$ (borderline)
 \end{itemize}
 
@@ -157,4 +157,4 @@ The compute\_significance.py tool outputs a ranked table sorted by p-value (asce
         diff= 0.0000, p=1.0000, CI=[-0.0238,  0.0238]
 \end{lstlisting}
 
-Results are checkpointed incrementally to `.significance_cache/significance_tests.json` for pause/resume capability.
+Results are checkpointed incrementally to \texttt{.significance\_cache/significance\_tests.json} for pause/resume capability.

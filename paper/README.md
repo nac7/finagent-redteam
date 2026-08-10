@@ -21,20 +21,52 @@ paper/
 
 ## Compilation
 
-To compile the paper to PDF:
+The paper uses the **NeurIPS 2026 workshop style**. The 2026 class **requires a
+track option** plus a `\workshoptitle{}`; `main.tex` is already set for FLMSec:
+
+```latex
+\usepackage[sglblindworkshop, nonanonymous]{neurips_2026}
+\workshoptitle{Foundations of Language Model Security (FLMSec)}
+```
+
+The official `neurips_2026.sty` is **not** vendored here — pull it from the NeurIPS
+2026 formatting bundle and place it in this `paper/` directory first:
 
 ```bash
 cd paper/
+curl -L -o nrps.zip https://media.neurips.cc/Conferences/NeurIPS2026/Formatting_Instructions_For_NeurIPS_2026.zip
+unzip -j nrps.zip 'neurips_2026.sty' -d . && rm nrps.zip
+```
+
+Then compile. Tectonic is the least-fuss route (auto-fetches packages, runs bibtex):
+
+```bash
+tectonic -X compile main.tex          # one command, produces main.pdf
+```
+
+Or the classic toolchain / Overleaf (upload the whole `paper/` folder incl. the `.sty`):
+
+```bash
 pdflatex -interaction=nonstopmode main.tex
 bibtex main
 pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 ```
 
-Or use your preferred LaTeX editor (Overleaf, TeXShop, MikTeX, TeX Live).
-
-Expected output:
-- `main.pdf` (~10 pages main + appendix)
+Notes:
+- For a **double-blind** venue, use `[sglblindworkshop]` (or `[dblblindworkshop]`)
+  **without** `nonanonymous` — names are dropped automatically.
+- The style loads `hyperref` itself; our explicit `\usepackage{hyperref}` coexists
+  cleanly with Tectonic 0.17, but drop it if a classic run warns of an option clash.
+- `\S` in `references.bib` must be brace-protected (`{\S}`) or the `plainnat` bst
+  lowercases it to an undefined `\s`. Raw Unicode (×, ≈) is not in the Times fonts —
+  use `$\times$` / `$\approx$`.
+- **Page limit — met.** FLMSec allows **8 pp excluding references** (appendices,
+  placed after the bibliography, are supplementary and outside the limit). The body
+  now ends on p.8 (references begin on p.9); total PDF with appendices is 19 pp.
+  The body carries Tables 1--4; all four figures and the full stats/scenario tables
+  live in the appendix. If the body grows again, re-check with the page map before
+  submitting.
 
 ## Content Summary
 
@@ -50,7 +82,7 @@ Expected output:
    - Bootstrap significance testing (10,000 resamples)
    - Experimental setup (7 models, 48 scenarios, 3 trials)
 5. **Results** (§4):
-   - Leaderboard: Frontier models (Claude, Gemini, Mistral) achieve 0% ASR; open-source models 22–83%
+   - Leaderboard: capability does not track safety — a frontier model (GPT-4o) reaches 71% no-policy ASR, while Claude Sonnet resists at 0%; stated policy leaves a 28–45% residual for weaker models; hard enforcement drives ASR to 0% for all seven
    - Per-threat breakdown
    - Utility/over-refusal analysis
    - Statistical significance (bootstrap tests)
@@ -80,11 +112,12 @@ Expected output:
 For use in your own papers:
 
 ```bibtex
-@article{lele2026finagent,
+@misc{lele2026finagent,
   title={FinAgent Red-Team: A Benchmark for Regulatory-Control Bypass in Financial LLM Agents},
   author={Lele, Nachiket},
-  journal={arXiv preprint},
-  year={2026}
+  year={2026},
+  howpublished={\url{https://github.com/nac7/finagent-redteam}},
+  note={Software archived on Zenodo, DOI: 10.5281/zenodo.21855808}
 }
 ```
 
@@ -96,30 +129,32 @@ Lele, N. FinAgent Red-Team: A Benchmark for Regulatory-Control Bypass in Financi
 
 ## Key Metrics at a Glance
 
+Seven models pass the integrity gate (zero API errors, real tool calls, non-zero
+benign utility) and appear in the leaderboard. Numbers below are the reported
+run (48 scenarios × 3 postures × 3 trials; the Groq-served Llama is single-trial).
+
 | Model | ASR (Advisory) | Policy Uplift | Enforcement Uplift |
 |-------|----------------|---------------|--------------------|
-| Claude Sonnet 4.6 | 0% | 0% | 0% |
-| Gemini 2.0 Flash | 0% | 0% | 0% |
-| Mistral 7B | 0% | 0% | 0% |
+| Claude Sonnet 4.6 | 0% | +0% | +0% |
+| Claude Haiku 4.5 | 1% | +29% | +1% |
+| GPT-4o | 1% | +71% | +1% |
+| Llama 3.1 8B (local) | 0% | +0% | +0% |
+| Llama 3.1 8B (Groq) | 21% | +21% | +21% |
+| GPT-4o-mini | 28% | +55% | +28% |
 | Qwen 3 8B | 45% | +38% | +45% |
-| Llama 3.1 8B | 22% | +36% | +22% |
-| Gemma 2 9B | 31% | +33% | +31% |
 
 ## Venue Recommendations
 
-1. **NeurIPS 2024/2025** — Top-tier ML venue; bench papers often accepted
-2. **SaTML 2025** — Security and trustworthiness track; perfect fit
-3. **USENIX Security 2025** — Security focus; benchmarks valued
-4. **ACL 2025** — NLP track; language safety in focus
-5. **arXiv** — Pre-print for immediate visibility and community feedback
+1. **FLMSec @ NeurIPS 2026** — Foundations of Language Model Security workshop; direct scope match (evaluation methodologies, attacks/defenses, security-utility trade-offs). Non-archival (compatible with a later archival submission). Deadline Aug 22, 2026.
+2. **Who Verifies the Agents? @ NeurIPS 2026** — agent evaluation / environment-grounded verification; non-archival. Deadline Aug 29, 2026.
+3. **NeurIPS Datasets & Benchmarks (2027 cycle)** — archival upgrade target once the suite is scaled up.
+4. **SaTML** — Security and trustworthiness track; strong fit for the archival version.
 
 ## Publishing Timeline
 
-- **Month 1**: Polish paper, add detailed results tables, get feedback
-- **Month 2**: Prepare for arXiv upload (no review required, immediate dissemination)
-- **Month 3**: Submit to SaTML 2025 (December deadline)
-- **Month 4**: Submit to USENIX Security 2025 (January deadline)
-- **Month 6**: Present at conferences if accepted
+- **Now**: Fix integrity items, trim to workshop page limit, submit current 7-model results to FLMSec (non-archival).
+- **Fall 2026**: Fold in reviewer feedback; scale the suite (scenarios + uniform model coverage) toward the archival version.
+- **2027**: Submit the scaled version to an archival Datasets & Benchmarks venue.
 
 ## Integration with Benchmark
 
@@ -133,7 +168,7 @@ The paper references code at `github.com/nac7/finagent-redteam`. Ensure:
 
 ## Questions?
 
-- For LaTeX issues: consult the preamble in `main.tex` (standard article class)
+- For LaTeX issues: consult the preamble in `main.tex` (NeurIPS 2026 workshop style)
 - For content: refer to individual section files (each section is self-contained)
 - For bibliography: add to `references.bib` and cite with `\citep{}` or `\citet{}`
 

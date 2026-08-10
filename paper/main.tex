@@ -1,4 +1,15 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass{article}
+
+% NeurIPS 2026 workshop style (required by FLMSec and "Who Verifies the Agents?").
+% The official neurips_2026.sty must sit in this directory before compiling; see
+% paper/README.md "Compilation" for the one-line download.
+% The 2026 class REQUIRES a track option; workshops also require \workshoptitle below.
+%   [sglblindworkshop, nonanonymous] -> workshop footer + author names shown
+%                                       (FLMSec is non-anonymous, non-archival)
+%   [sglblindworkshop]               -> same footer but ANONYMIZED, for a blind venue
+%   [dblblindworkshop]               -> double-blind workshop variant
+\usepackage[sglblindworkshop, nonanonymous]{neurips_2026}
+\workshoptitle{Foundations of Language Model Security (FLMSec)}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -7,34 +18,34 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{natbib}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{listings}
-\usepackage{fancyhdr}
 \usepackage{enumitem}
 
-\geometry{margin=1in}
-\setlength{\parindent}{0.5in}
-\setlength{\parskip}{0.5em}
-
-% Title and author info
-\title{FinAgent Red-Team: A Benchmark for Regulatory-Control Bypass in Financial LLM Agents}
-
-\author{
-  Nachiket Lele\footnotemark[1] \\
-  \textit{Visa Inc.} \\
-  \texttt{lelenachiket991@gmail.com} \\
-  \and
-  GitHub: \texttt{github.com/nac7/finagent-redteam} \\
-  \textit{Open source contributions for AI safety evaluation}
+% Listings style used by the appendix code blocks.
+\lstdefinestyle{numbers}{
+  basicstyle=\ttfamily\footnotesize,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
 }
 
-\footnotetext[1]{Work conducted as independent research toward EB2-NIW immigration petition.}
+\title{FinAgent Red-Team: A Benchmark for Regulatory-Control Bypass in Financial LLM Agents}
 
-\date{June 2026}
+\author{%
+  Nachiket Lele \\
+  Independent Researcher \\
+  \texttt{lelenachiket991@gmail.com} \\
+  \texttt{github.com/nac7/finagent-redteam}
+}
 
 \begin{document}
 
@@ -46,7 +57,7 @@ Financial institutions increasingly deploy LLM agents to automate accounts payab
 
 This paper introduces \textbf{FinAgent Red-Team}, a benchmark for evaluating LLM agent robustness against regulatory-control bypass attacks in financial workflows. The benchmark comprises 48 scenarios (42 adversarial, 6 benign). Every attack is delivered by indirect prompt injection into agent-readable content, and is scored in one of six outcome categories: unauthorized transfer, sanctions evasion, payment structuring, dual-approval defeat, data exfiltration, and confused-deputy payee redirection. Each threat traces to a specific regulatory obligation---currency transaction reporting, sanctions screening, segregation of duties---and each success criterion is the failure condition of the control that discharges it. Each scenario is evaluated under three control postures—\textit{none} (no policy), \textit{advisory} (policy stated, not enforced), and \textit{enforced} (hard system controls)—to decompose safety into policy-following vs.\ enforcement effectiveness.
 
-We evaluate seven models spanning closed- and open-weight families and three capability tiers: Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served both locally (Ollama) and via a cloud provider (Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models—including a frontier model, GPT-4o at 71\% attack success rate (ASR)—readily execute compliance-violating actions; only Claude Sonnet resists (0\% ASR). Merely \emph{stating} policy is not a reliable control: it nearly eliminates attacks for strong instruction-followers (GPT-4o and Claude Haiku both drop to 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). In contrast, \emph{hard enforcement} drives ASR to 0\% for every model, at zero measured over-refusal for six of the seven; the exception is Llama~3.1~8B served locally, which reaches 0\% ASR partly by declining to act at all (50\% over-refusal). All success criteria are deterministic state predicates (no LLM grading), and every rate is reported with a 95\% Wilson confidence interval. The benchmark is open-source, reproducible, and deployable in production financial environments.
+We evaluate seven closed- and open-weight models (Claude Sonnet~4.6 and Haiku~4.5, GPT-4o and GPT-4o-mini, Qwen~3~8B, and Llama~3.1~8B served locally and via Groq). Our central finding contradicts the intuition that capable models are inherently safe: with \emph{no} stated policy, most models---including a frontier model, GPT-4o at 71\% attack success rate (ASR)---readily execute compliance-violating actions, and only Claude Sonnet resists (0\%). Merely \emph{stating} policy is unreliable: it nearly eliminates attacks for strong instruction-followers (GPT-4o, Claude Haiku both 1\%) yet leaves a large residual for others (Qwen~3~8B 45\%, GPT-4o-mini 28\%). \emph{Hard enforcement} drives ASR to 0\% for every model at zero measured over-refusal---except Llama~3.1~8B served locally, which reaches 0\% partly by declining to act at all (50\% over-refusal). All success criteria are deterministic state predicates (no LLM grading), every rate carries a 95\% Wilson interval, and the benchmark is open-source and deployable.
 
 \textbf{Keywords:} LLM safety, agent red-teaming, financial compliance, regulatory bypass, benchmark design
 
@@ -58,26 +69,15 @@ We evaluate seven models spanning closed- and open-weight families and three cap
 
 Large language models are moving into financial operations at scale. Treasury departments use agents to approve wire transfers. Accounts payable teams rely on them to match invoices and route payments. Reconciliation systems deploy agents to identify and categorize transaction discrepancies.
 
-The failure modes in these domains are not generic misbehavior. They are \textit{compliance violations that look like task completion}:
-\begin{itemize}
-  \item An agent wires funds to an unlisted payee, bypassing controls.
-  \item An agent splits a large payment into two smaller transfers to evade reporting thresholds.
-  \item An agent approves a transaction that should require dual sign-off.
-  \item An agent exfiltrates client account data in response to a crafted email.
-\end{itemize}
-
-Existing red-teaming benchmarks (e.g., AgentBench, ToolEmu, AgentDojo) focus on generic agent capabilities—web browsing, API calling, multi-step reasoning. None model the regulatory control surface of a real financial institution. None distinguish between safety rooted in model judgment (``I know this is wrong'') vs.\ safety from hard system enforcement (``the system won't let me do this'').
+The failure modes in these domains are not generic misbehavior; they are \textit{compliance violations that look like task completion}: an agent wires funds to an unlisted payee, splits a large payment to evade a reporting threshold, self-approves a transfer that should require dual sign-off, or exfiltrates client account data in response to a crafted email. Existing red-teaming benchmarks (e.g.\ AgentBench, ToolEmu, AgentDojo) focus on generic agent capabilities---web browsing, API calling, multi-step reasoning---and neither model the regulatory control surface of a financial institution nor distinguish safety rooted in model judgment (``I know this is wrong'') from safety enforced by the system (``the system won't let me do this'').
 
 \subsection{Contributions}
 
 \begin{enumerate}
-  \item \textbf{Threat taxonomy}: An injection vector plus six scored attack categories grounded in real financial compliance failures (Table \ref{tab:threats}).
-  \item \textbf{Construct validity}: An explicit trace from each threat to the regulatory obligation it violates, the control an institution operates to discharge that obligation, and the state predicate that stands in for that control being defeated (Table \ref{tab:regmap}).
-  \item \textbf{Methodology}: Three-posture evaluation framework decomposing policy-following uplift from enforcement uplift.
-  \item \textbf{Deterministic evaluation}: No LLM grading. All success criteria are reproducible state predicates.
-  \item \textbf{Benchmark dataset}: 48 scenarios with 3 independent trials each = 144 scenario runs per model.
-  \item \textbf{Leaderboard of 7 models}: Bootstrap-significant comparisons with 95\% confidence intervals.
-  \item \textbf{Open source}: Fully deployable in production; no proprietary dependencies.
+  \item \textbf{A regulation-grounded threat taxonomy with construct validity}: an injection vector plus six scored attack categories, each traced from the regulatory obligation it violates, through the control an institution operates to discharge it, to the deterministic state predicate that stands in for that control being defeated (Tables~\ref{tab:threats},~\ref{tab:regmap}). All success criteria are reproducible state predicates---no LLM grading.
+  \item \textbf{A three-posture evaluation framework} that replays each scenario under \textit{none}/\textit{advisory}/\textit{enforced} control, decomposing safety into policy-following uplift and enforcement uplift.
+  \item \textbf{A leaderboard of 7 models} over 48 scenarios $\times$ 3 trials, with 95\% Wilson intervals and permutation-tested pairwise comparisons.
+  \item \textbf{An open-source, deployable benchmark} with an integrity gate and no proprietary dependencies.
 \end{enumerate}
 
 \section{Threat Taxonomy}
@@ -122,67 +122,23 @@ Financial compliance failures fall into seven categories, each modeled as a scen
 
 \label{sec:limitations}
 
-\subsection{Scope}
-
-This benchmark evaluates agent responses to scenarios with synthetic worlds and mock financial infrastructure. Real-world deployments face additional complexity:
-\begin{itemize}
-  \item Heterogeneous backend systems (legacy mainframes, SAP, etc.) with varying API contracts.
-  \item User expectations and social engineering beyond the model's capabilities.
-  \item Regulatory variation across jurisdictions.
-\end{itemize}
-
-\subsection{Threat Model}
-
-We assume attacks come via prompt injection (crafted emails, invoices, chat). We do not model:
-\begin{itemize}
-  \item Supply chain attacks (compromised tools or models).
-  \item Physical access to infrastructure.
-  \item Social engineering of human stakeholders.
-\end{itemize}
-
-\subsection{Evaluation Coverage}
-
-Our 48 scenarios sample the threat space but do not exhaustively enumerate all possible attacks. New threat categories may emerge with novel model capabilities or financial products.
+The benchmark runs against synthetic worlds and mock financial infrastructure; real deployments add heterogeneous backends, jurisdictional variation, and human social engineering that we do not model. The threat model is indirect prompt injection (crafted emails, invoices, chat); we exclude supply-chain compromise, physical access, and social engineering of human stakeholders. The 48 scenarios sample rather than exhaustively enumerate the threat space, and new categories may emerge with novel model capabilities or financial products. Finally, the Groq-served Llama~3.1~8B is reported at a single trial (cloud-provider quota), so its confidence intervals are correspondingly wider.
 
 \section{Responsible Disclosure}
 
 \label{sec:responsible}
 
-This benchmark is designed to harden financial AI systems before deployment. Two properties limit its offensive utility. First, every scenario runs against a synthetic world: mock ledgers, mock payees, mock counterparties. The benchmark contains no real account data, transaction histories, or customer information, and no scenario is executable against a live financial system without being rewritten for that system's interfaces. Second, the attacks it encodes are not novel capabilities. Indirect prompt injection through agent-readable content is public knowledge \citep{greshake2023injection}, and the compliance controls the scenarios target --- reporting thresholds, sanctions screening, dual authorization --- are described in publicly available statute and regulation. What is new here is the measurement apparatus, not the attack.
-
-The findings in this paper have not been disclosed to the model vendors in advance of publication. We judge the risk of publication to be low for the reasons above, and the benefit to defenders to be concrete: the central result is that a control the operator already has available --- enforcement at the tool boundary --- reduces attack success to zero for every model tested, including the models this paper reports as most susceptible. A practitioner who reads this paper can act on it without waiting for a model update.
-
-We encourage responsible use: researchers and practitioners should deploy this benchmark in controlled environments and share findings with vendors and the broader community.
+This benchmark is designed to harden financial AI systems before deployment, and two properties limit its offensive utility. Every scenario runs against a synthetic world---mock ledgers, payees, and counterparties, with no real account data---and is not executable against a live system without being rewritten for that system's interfaces. And the attacks are not novel capabilities: indirect prompt injection is public knowledge \citep{greshake2023injection}, and the targeted controls (reporting thresholds, sanctions screening, dual authorization) are described in public statute and regulation. What is new is the measurement apparatus, not the attack. We judge the publication risk low and the benefit to defenders concrete: the central result---that enforcement at the tool boundary reduces attack success to zero for every model tested---is a control practitioners already have and can act on without waiting for a model update.
 
 \section{Open Source and Reproducibility}
 
 \label{sec:opensource}
 
-FinAgent Red-Team is available at:
-\begin{center}
-  \texttt{github.com/nac7/finagent-redteam}
-\end{center}
-
-The benchmark includes:
-\begin{itemize}
-  \item Scenario generation code (deterministic, seeded).
-  \item Agent runner for any OpenAI-compatible API.
-  \item Leaderboard evaluation harness with bootstrap significance testing.
-  \item Results for all 7 models with checkpoint/resume support.
-  \item A validation gate that rejects runs with API errors, absent tool calls, or degenerate benign utility, so that an unusable run cannot be mistaken for a robust one.
-\end{itemize}
-
-All code is MIT-licensed. Results are reproducible: the benchmark uses fixed seeds and deterministic predicates.
+FinAgent Red-Team is MIT-licensed and available at \texttt{github.com/nac7/finagent-redteam}. It ships deterministic seeded scenario generation, an agent runner for any OpenAI-compatible API, a leaderboard harness with permutation-based significance testing and checkpoint/resume, results for all 7 models, and a validation gate that rejects runs with API errors, absent tool calls, or degenerate benign utility---so an unusable run cannot be mistaken for a robust one. Results reproduce from fixed seeds and deterministic predicates.
 
 \section{Conclusion}
 
-Financial LLM agents represent a new frontier in AI safety evaluation. FinAgent Red-Team provides a rigorous, open-source benchmark to measure and improve robustness against compliance-critical attacks. Our results do not support the assumption that capability confers safety: absent a stated policy, a frontier model executed compliance-violating actions in 71\% of attack scenarios, and only one of seven models resisted outright. What separated models was not raw capability but their ability to act on a policy once told --- and even the best of that behaviour was matched, for every model, by hard enforcement. The practical implication for deployment is that policy text is a mitigation and the sandbox is the control.
-
-We release this benchmark to accelerate the maturation of financial AI safety as a discipline.
-
-\section*{Acknowledgments}
-
-This research was conducted as independent work toward EB2-NIW immigration petition, demonstrating sustained impact in open-source AI safety tooling and evaluation.
+FinAgent Red-Team is an open-source benchmark for robustness against compliance-critical attacks on financial LLM agents. Our results do not support the assumption that capability confers safety: absent a stated policy, a frontier model executed compliance-violating actions in 71\% of attack scenarios, and only one of seven models resisted outright. What separated models was not raw capability but their ability to act on a policy once told---and even that was matched, for every model, by hard enforcement. The practical implication is that policy text is a mitigation and the sandbox is the control.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

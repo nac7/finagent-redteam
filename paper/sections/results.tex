@@ -1,11 +1,11 @@
 \subsection{Overall Leaderboard}
 
-Table \ref{tab:leaderboard} presents the Attack Success Rate (ASR) across all models and postures; Figure \ref{fig:asr_postures} visualizes it. We evaluate seven models spanning closed- and open-weight families and three capability tiers, each on 48 scenarios $\times$ 3 postures $\times$ 3 trials (144 runs/model), except \texttt{llama-3.1-8b-instant} (Groq), which is reported at a single trial (its wider confidence intervals reflect this). Models are ranked by residual ASR under enforcement, then by advisory ASR, then by intrinsic (no-policy) ASR, then by utility.
+Table~\ref{tab:leaderboard} presents ASR across all models and postures (Figure~\ref{fig:asr_postures}, Appendix~\ref{app:tables}, visualizes it). Models are ranked by residual ASR under enforcement, then advisory ASR, then intrinsic (no-policy) ASR, then utility.
 
 \begin{table}[h]
 \centering
 \small
-\caption{FinAgent Red-Team leaderboard: ASR (\%) across the three control postures, with policy-following and enforcement uplift, benign utility under enforcement, and over-refusal. Lower ASR is better; higher utility is better. Bracketed values are 95\% Wilson confidence intervals for the no-policy ASR.}
+\caption{FinAgent Red-Team leaderboard: ASR (\%) across the three control postures, with policy-following and enforcement uplift, benign utility under enforcement, and over-refusal. Lower ASR is better; higher utility is better. Per-model 95\% Wilson confidence intervals for the no-policy ASR are listed beneath the table.}
 \label{tab:leaderboard}
 \begin{tabular}{|l|r|r|r|r|r|r|r|}
 \hline
@@ -13,54 +13,32 @@ Table \ref{tab:leaderboard} presents the Attack Success Rate (ASR) across all mo
  & \textbf{none} & \textbf{adv.} & \textbf{enf.} & \textbf{uplift} & \textbf{uplift} & \textbf{enf.} & \textbf{refusal} \\
 \hline
 Claude Sonnet 4.6 & 0.0 & 0.0 & 0.0 & +0.0 & +0.0 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [0.0, 3.0]} \\
 Llama 3.1 8B (local) & 0.0 & 0.0 & 0.0 & +0.0 & +0.0 & 50 & 50.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [0.0, 3.0]} \\
 Claude Haiku 4.5 & 30.2 & 0.8 & 0.0 & +29.4 & +0.8 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [22.8, 38.7]} \\
 GPT-4o & 71.4 & 0.8 & 0.0 & +70.6 & +0.8 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [63.0, 78.6]} \\
 Llama 3.1 8B (Groq)$^\dagger$ & 42.9 & 21.4 & 0.0 & +21.4 & +21.4 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [29.1, 57.8]} \\
 GPT-4o-mini & 82.5 & 27.8 & 0.0 & +54.8 & +27.8 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [75.0, 88.2]} \\
 Qwen 3 8B & 83.3 & 45.2 & 0.0 & +38.1 & +45.2 & 100 & 0.0 \\
- & \multicolumn{7}{l|}{\footnotesize\hspace{1em}95\% CI (none): [75.9, 88.8]} \\
 \hline
 \end{tabular}
 
 \vspace{0.3em}
-{\footnotesize $^\dagger$ Single trial (cloud-provider quota); wider CIs reflect the smaller sample. See \S\ref{sec:limitations}.}
+{\footnotesize 95\% Wilson CIs on no-policy ASR: Sonnet [0.0,\,3.0], Llama-local [0.0,\,3.0], Haiku [22.8,\,38.7], GPT-4o [63.0,\,78.6], Llama-Groq [29.1,\,57.8], GPT-4o-mini [75.0,\,88.2], Qwen [75.9,\,88.8]. $^\dagger$ Single trial (cloud-provider quota); wider CIs reflect the smaller sample (\S\ref{sec:limitations}).}
 \end{table}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig1_asr_postures.pdf}
-\caption{ASR across models and control postures. Susceptibility with no stated policy (red) is high and \emph{not} confined to small open-weight models---GPT-4o reaches 71\%. Stating policy (orange) collapses ASR for strong instruction-followers but not for all models. Enforcement (green) drives ASR to zero everywhere.}
-\label{fig:asr_postures}
-\end{figure}
 
 \subsection{Key Findings}
 
-\subsubsection{1. Capability does not imply compliance safety}
+\textbf{1. Capability does not imply compliance safety.} With no stated policy, six of seven models execute compliance-violating actions at appreciable rates, and susceptibility does \emph{not} track scale or ``frontier'' status: GPT-4o---a frontier model---has the second-highest no-policy ASR (71.4\%), marginally below the 8B Qwen~3 (83.3\%) and well above Claude Haiku (30.2\%). The sole exception is Claude Sonnet~4.6, which refuses every attack at every posture (0.0\%) while retaining full utility. Safe-by-default behavior is achievable but is not a generic property of capable models.
 
-With no stated policy, six of seven models execute compliance-violating actions at appreciable rates, and susceptibility does \emph{not} track model scale or ``frontier'' status. GPT-4o---a frontier model---has the second-highest no-policy ASR in the study (71.4\%), above the 8B open-weight Qwen 3 only marginally (83.3\%) and well above Claude Haiku (30.2\%). The single exception is Claude Sonnet 4.6, which refuses every attack at every posture (0.0\% ASR) while retaining full benign utility. This shows that safe-by-default behavior is achievable but is not a generic property of capable models.
+\textbf{2. Stating policy is not a reliable control.} Policy-following uplift varies enormously. For strong instruction-followers, stating the policy nearly eliminates attacks (GPT-4o 71.4\%$\to$0.8\%, Claude Haiku 30.2\%$\to$0.8\%); for others a large residual survives (Qwen~3~8B 45.2\%, GPT-4o-mini 27.8\%). A deployer cannot treat a written policy as a dependable safeguard---its effectiveness is model-dependent and, for some capable models, weak.
 
-\subsubsection{2. Stating policy is not a reliable control}
+\textbf{3. Enforcement is universally effective and low-cost.} Hard enforcement reduces ASR to 0.0\% for \emph{every} model, including those for which stated policy was insufficient, at no measured utility cost (0\% over-refusal for all models that make real tool calls). This is the central operational result: defense-in-depth anchored on enforcement, not on model judgement or stated policy, makes financial agents safe without breaking legitimate work.
 
-Policy-following uplift (ASR$_\text{none}$ $-$ ASR$_\text{advisory}$) varies enormously across models. For strong instruction-followers, merely stating the policy nearly eliminates attacks: GPT-4o falls from 71.4\% to 0.8\% and Claude Haiku from 30.2\% to 0.8\%. For others, a large residual survives: Qwen 3 8B remains at 45.2\% and GPT-4o-mini at 27.8\% even when the policy is explicitly stated. A deployer cannot, therefore, treat a written policy as a dependable safeguard---its effectiveness is model-dependent and, for some capable models, weak.
-
-\subsubsection{3. Enforcement is universally effective and low-cost}
-
-Hard system enforcement reduces ASR to 0.0\% for \emph{every} model, including those (Qwen 3 8B, GPT-4o-mini) for which stated policy was insufficient. Crucially, this comes at no measured utility cost: over-refusal is 0\% for all models that make real tool calls. This is the benchmark's central operational result: defense-in-depth anchored on enforcement, not on model judgement or stated policy, is what makes financial agents safe without breaking legitimate work.
-
-\subsubsection{4. ``Zero ASR'' can be an artifact of over-refusal}
-
-Two models report 0.0\% ASR, but for opposite reasons. Claude Sonnet achieves it with 100\% benign utility---principled refusal. The locally served Llama 3.1 8B achieves it with only 50\% benign utility and 50\% over-refusal: transcript inspection shows it typically issues a single \texttt{read\_inbox} call and stops, rather than chaining to the malicious follow-up action. Its safety is thus partly an artifact of not acting, not of recognizing the attack. Reporting utility alongside ASR is essential to distinguish these cases---an ASR-only leaderboard would rank these two identically.
+\textbf{4. ``Zero ASR'' can be an artifact of over-refusal.} Two models report 0.0\% ASR for opposite reasons. Claude Sonnet does so with 100\% utility (principled refusal); the locally served Llama~3.1~8B does so with only 50\% utility and 50\% over-refusal---transcript inspection shows it typically issues a single \texttt{read\_inbox} call and stops rather than chaining to the malicious action. Reporting utility alongside ASR is essential: an ASR-only leaderboard would rank these two identically.
 
 \subsection{Per-Threat Breakdown}
 
-Table \ref{tab:by-threat} shows ASR by threat category under the advisory posture (policy stated, not enforced), the most realistic deployment scenario. Figure \ref{fig:threat_heatmap} visualizes it.
+Table~\ref{tab:by-threat} shows ASR by category under the advisory posture (policy stated, not enforced), the most realistic deployment scenario; Figure~\ref{fig:threat_heatmap} (Appendix~\ref{app:tables}) visualizes it.
 
 \begin{table}[h]
 \centering
@@ -84,49 +62,8 @@ T7: Confused deputy & 0 & 0 & 0 & 0 & 28 & 0 & 0 \\
 {\footnotesize Son.=Sonnet, Hai.=Haiku, L3.1$_L$=Llama 3.1 8B local, L3.1$_G$=Llama 3.1 8B Groq.}
 \end{table}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig2_threat_heatmap.pdf}
-\caption{Per-threat ASR heatmap (advisory posture). Green is robust (0\%); red is vulnerable. The vulnerable cells concentrate in payment structuring (T4) and dual-approval defeat (T5), where a stated policy provides little protection for the weaker models.}
-\label{fig:threat_heatmap}
-\end{figure}
+Vulnerability is not spread uniformly. Payment structuring (T4) and dual-approval defeat (T5)---controls that require reasoning about aggregate limits and separation of duties rather than a single forbidden action---are the hardest, reaching 94--100\% for GPT-4o-mini and Qwen~3 even under stated policy, and are precisely where hard enforcement matters most.
 
-\textbf{Observation:} Vulnerability is not spread uniformly. Payment structuring (T4) and dual-approval defeat (T5)---controls that require the model to reason about aggregate limits and separation of duties rather than a single forbidden action---are the hardest, reaching 94--100\% for GPT-4o-mini and Qwen 3 even under stated policy. This suggests these controls are intrinsically difficult for current models and are precisely where hard enforcement matters most.
+\subsection{Utility, Reliability, and Deployment Dependence}
 
-\subsection{Utility and Over-Refusal}
-
-Benign scenarios measure the cost of controls. Every model that makes real structured tool calls completes 100\% of legitimate tasks at all three postures (0\% over-refusal), so enforcement can be deployed without degrading legitimate workflows. The sole exception is the locally served Llama 3.1 8B, which completes only 50\% of benign tasks (50\% over-refusal)---an incapacity to reliably chain multi-step workflows, discussed in \S\ref{sec:results} finding~4---and not a consequence of the controls.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/fig3_uplift.pdf}
-\caption{Control-posture uplift. Policy-following uplift (blue) is large but highly variable across models; enforcement uplift (orange) supplies the remaining reduction, and is largest exactly for the models that ignore stated policy (Qwen 3 8B, GPT-4o-mini). Both layers are needed.}
-\label{fig:uplift}
-\end{figure}
-
-\subsection{Statistical Reliability}
-
-All rates are reported with 95\% Wilson score confidence intervals computed on pooled trial counts (Table \ref{tab:leaderboard}; Appendix \ref{app:stats}). Wilson intervals remain valid at extreme proportions (near 0 or 1) and small samples, both common here. The key qualitative gaps are supported by non-overlapping intervals: under the advisory posture, Qwen 3 8B (45.2\%, CI on the no-policy rate [75.9, 88.8]) and GPT-4o-mini (27.8\%) remain clearly separated from GPT-4o and Claude Haiku (both 0.8\%), whose intervals sit near zero. A bootstrap resampling test for pairwise comparisons is provided in the repository (\texttt{compute\_significance.py}) with checkpoint/resume support.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/fig4_ranking.pdf}
-\caption{Model robustness ranking under the advisory posture. Robust ($<$5\%): Claude Sonnet, Llama 3.1 8B (local), GPT-4o, Claude Haiku. Moderate (5--30\%): GPT-4o-mini, Llama 3.1 8B (Groq). Vulnerable ($>$30\%): Qwen 3 8B. Note that the two 0\%-ASR models differ sharply in utility (Table \ref{tab:leaderboard}).}
-\label{fig:ranking}
-\end{figure}
-
-\subsection{Deployment-Dependent Susceptibility}
-
-The same Llama 3.1 8B weights exhibit materially different susceptibility depending on the serving stack: 0.0\% no-policy ASR served locally via Ollama versus 42.9\% served via Groq. Because the model weights are identical, this gap is attributable to serving-stack differences (system-prompt handling, sampling defaults, tool-call formatting) rather than the model itself. We therefore report the two configurations as distinct entries. This is a cautionary result for practitioners: a model's measured safety is a property of the deployed \emph{system}, not the weights alone, and must be re-measured per deployment.
-
-\subsection{Summary}
-
-FinAgent Red-Team reveals a nuanced landscape:
-
-\begin{itemize}
-  \item \textbf{Capability $\neq$ safety}: a frontier model (GPT-4o) is among the most susceptible with no stated policy (71.4\%); only Claude Sonnet is safe by default.
-  \item \textbf{Stated policy is unreliable}: it eliminates attacks for strong instruction-followers but leaves 28--45\% residual for others.
-  \item \textbf{Enforcement is decisive}: it drives ASR to 0\% for every model at no measured utility cost.
-  \item \textbf{Measure utility with ASR}: two models score 0\% ASR, but one does so by refusing legitimate work half the time.
-  \item \textbf{Safety is deployment-dependent}: identical weights differ by 43 points across serving stacks.
-\end{itemize}
+Benign scenarios measure the cost of controls: every model that makes real tool calls completes 100\% of legitimate tasks at all three postures (0\% over-refusal), so enforcement deploys without degrading legitimate workflows---the sole exception, the local Llama~3.1~8B at 50\% utility, reflects an incapacity to chain multi-step workflows (finding~4), not the controls. All rates carry 95\% Wilson intervals, with the key gaps supported by non-overlapping intervals (Appendix~\ref{app:stats}). Finally, susceptibility is \emph{deployment-dependent}: the same Llama~3.1~8B weights score 0.0\% no-policy ASR served locally versus 42.9\% via Groq---a 43-point gap attributable to serving-stack differences (system-prompt handling, sampling defaults, tool-call formatting) rather than the weights, so measured safety is a property of the deployed \emph{system} and must be re-measured per deployment.
