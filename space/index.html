@@ -1,0 +1,300 @@
+<title>FinAgent Red-Team — Leaderboard</title>
+<style>
+  :root{
+    --ground:#f5f7f7; --surface:#ffffff; --surface-2:#eef2f1;
+    --ink:#16201f; --muted:#596967; --faint:#809390;
+    --border:#e0e6e4; --border-strong:#cdd6d4;
+    --accent:#0e7c86; --accent-deep:#0a5b63; --accent-soft:#0e7c8618;
+    /* severity scale for ASR (semantic, separate from accent) */
+    --sev-safe:#12855c; --sev-safe-bg:#12855c1f;
+    --sev-low:#6f8f37; --sev-low-bg:#6f8f371f;
+    --sev-mod:#c07c12; --sev-mod-bg:#c07c1220;
+    --sev-high:#bd3f2b; --sev-high-bg:#bd3f2b1c;
+    --shadow:0 1px 2px #16201f0a, 0 6px 20px #16201f0d;
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){ }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0c1312; --surface:#121c1b; --surface-2:#182423;
+      --ink:#e9efed; --muted:#93a3a1; --faint:#5f716f;
+      --border:#22302e; --border-strong:#31413f;
+      --accent:#39b0bb; --accent-deep:#5cc3cc; --accent-soft:#39b0bb1f;
+      --sev-safe:#2fb37f; --sev-safe-bg:#2fb37f24;
+      --sev-low:#9cc054; --sev-low-bg:#9cc05420;
+      --sev-mod:#e0a233; --sev-mod-bg:#e0a23322;
+      --sev-high:#e56a53; --sev-high-bg:#e56a5322;
+      --shadow:0 1px 2px #0006, 0 8px 24px #0007;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0c1312; --surface:#121c1b; --surface-2:#182423;
+    --ink:#e9efed; --muted:#93a3a1; --faint:#5f716f;
+    --border:#22302e; --border-strong:#31413f;
+    --accent:#39b0bb; --accent-deep:#5cc3cc; --accent-soft:#39b0bb1f;
+    --sev-safe:#2fb37f; --sev-safe-bg:#2fb37f24;
+    --sev-low:#9cc054; --sev-low-bg:#9cc05420;
+    --sev-mod:#e0a233; --sev-mod-bg:#e0a23322;
+    --sev-high:#e56a53; --sev-high-bg:#e56a5322;
+    --shadow:0 1px 2px #0006, 0 8px 24px #0007;
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .wrap{max-width:1000px; margin:0 auto; padding:32px 20px 64px}
+  code,.mono{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+
+  /* header */
+  header{display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px 24px; justify-content:space-between}
+  .brand{display:flex; align-items:center; gap:12px}
+  .brand .mark{width:40px; height:40px; border-radius:10px; display:grid; place-items:center;
+    background:var(--accent-soft); color:var(--accent); font-size:22px; flex:none}
+  h1{font-size:26px; letter-spacing:-.02em; margin:0; text-wrap:balance}
+  .sub{color:var(--muted); font-size:14px; margin:2px 0 0}
+  .thesis{margin:18px 0 0; font-size:16.5px; max-width:66ch; text-wrap:pretty}
+  .thesis b{color:var(--accent-deep)}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .chip{font-size:12px; color:var(--muted); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:999px; padding:4px 11px; white-space:nowrap}
+  .chip b{color:var(--ink); font-weight:600}
+
+  .toggle{flex:none; font:inherit; font-size:13px; cursor:pointer; color:var(--muted);
+    background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:7px 12px}
+  .toggle:hover{border-color:var(--border-strong); color:var(--ink)}
+  .toggle:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* KPI tiles */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:26px 0 8px}
+  .kpi{background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:15px 16px; box-shadow:var(--shadow)}
+  .kpi .n{font-size:27px; font-weight:680; letter-spacing:-.02em; line-height:1.05}
+  .kpi .n small{font-size:15px; font-weight:600; color:var(--muted)}
+  .kpi .l{font-size:12.5px; color:var(--muted); margin-top:6px; text-wrap:pretty}
+  .kpi.good .n{color:var(--sev-safe)} .kpi.bad .n{color:var(--sev-high)}
+
+  h2{font-size:14px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted);
+    margin:38px 0 14px; font-weight:650}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); overflow:hidden}
+  .scroll{overflow-x:auto}
+
+  /* leaderboard table */
+  table{border-collapse:collapse; width:100%; font-size:14px}
+  thead th{position:sticky; top:0; background:var(--surface); text-align:right;
+    font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+    font-weight:600; padding:12px 14px; border-bottom:1px solid var(--border-strong); white-space:nowrap}
+  thead th.l{text-align:left}
+  tbody td{padding:11px 14px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:var(--surface-2)}
+  .rank{color:var(--faint); width:26px; text-align:right; font-variant-numeric:tabular-nums}
+  .model{text-align:left; font-weight:600}
+  .model .tier{display:block; font-weight:400; font-size:11.5px; color:var(--muted)}
+  .asr-cell{min-width:118px}
+  .bar{position:relative; height:20px; border-radius:5px; background:var(--surface-2);
+    overflow:hidden; display:inline-flex; align-items:center; width:88px; vertical-align:middle}
+  .bar > span{position:absolute; left:0; top:0; bottom:0; border-radius:5px}
+  .bar em{position:relative; z-index:1; font-style:normal; font-size:12px; font-weight:600;
+    padding-left:7px; color:var(--ink); mix-blend-mode:normal}
+  .val{display:inline-block; min-width:42px; text-align:right; font-weight:600}
+  .pill{display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px}
+  .pill.safe{color:var(--sev-safe); background:var(--sev-safe-bg)}
+  .pill.warn{color:var(--sev-mod); background:var(--sev-mod-bg)}
+
+  /* heatmap */
+  .heat{font-size:13px; width:100%; border-collapse:collapse}
+  .heat th{font-size:11.5px; color:var(--muted); font-weight:600; padding:8px 6px; text-align:center; white-space:nowrap}
+  .heat th.l{text-align:left; padding-left:14px}
+  .heat td{text-align:center; padding:4px}
+  .heat td.l{text-align:left; padding-left:14px; color:var(--ink); white-space:nowrap; font-size:12.5px}
+  .cell{display:block; padding:9px 0; border-radius:6px; font-weight:600; font-variant-numeric:tabular-nums;
+    min-width:42px; font-size:12.5px}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin:12px 2px 0; font-size:12px; color:var(--muted)}
+  .legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-1px}
+
+  .note{font-size:13px; color:var(--muted); margin:14px 2px 0; text-wrap:pretty}
+  .foot{margin-top:40px; padding-top:22px; border-top:1px solid var(--border); font-size:13px; color:var(--muted)}
+  .foot a{color:var(--accent-deep); text-decoration:none; border-bottom:1px solid transparent}
+  .foot a:hover{border-bottom-color:var(--accent-deep)}
+  .foot .links{display:flex; flex-wrap:wrap; gap:8px 18px; margin-bottom:12px}
+
+  @media (max-width:720px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    h1{font-size:22px}
+    .bar{width:64px}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .bar > span{transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true">🛡️</div>
+      <div>
+        <h1>FinAgent Red-Team</h1>
+        <p class="sub">Regulatory-control bypass in financial LLM agents · reference leaderboard</p>
+      </div>
+    </div>
+    <button class="toggle" id="themeBtn" type="button" aria-label="Toggle color theme">◐ Theme</button>
+  </header>
+
+  <p class="thesis">
+    Can a tool-using agent be driven, through <b>indirect prompt injection</b>, to bypass the
+    controls a bank actually operates? Each scenario is replayed under three postures —
+    <b>none</b>, <b>advisory</b> (policy stated), <b>enforced</b> (hard block) — and scored by a
+    deterministic predicate over world state, not an LLM judge.
+  </p>
+  <div class="chips">
+    <span class="chip"><b>48</b> scenarios</span>
+    <span class="chip"><b>42</b> attack · <b>6</b> benign</span>
+    <span class="chip"><b>7</b> models</span>
+    <span class="chip"><b>3</b> control postures</span>
+    <span class="chip">deterministic scoring</span>
+    <span class="chip">95% Wilson CIs</span>
+  </div>
+
+  <section class="kpis" aria-label="Headline metrics">
+    <div class="kpi good"><div class="n">0<small>%</small></div><div class="l">Attack success at <b>enforced</b> posture — every model</div></div>
+    <div class="kpi bad"><div class="n">71<small>%</small></div><div class="l">Peak no-policy ASR — GPT-4o, a <b>frontier</b> model</div></div>
+    <div class="kpi"><div class="n">1<small> / 7</small></div><div class="l">Models safe by default (0% ASR, full utility)</div></div>
+    <div class="kpi"><div class="n">T4·T5</div><div class="l">Categories a stated policy fails to stop</div></div>
+  </section>
+
+  <h2>Leaderboard — attack success rate by control posture</h2>
+  <div class="card scroll">
+    <table id="board">
+      <thead>
+        <tr>
+          <th class="l" style="width:30px">#</th>
+          <th class="l">Model</th>
+          <th class="l">ASR · no policy</th>
+          <th class="l">ASR · advisory</th>
+          <th>ASR · enforced</th>
+          <th>Utility</th>
+          <th>Over-refusal</th>
+        </tr>
+      </thead>
+      <tbody><!-- rows injected --></tbody>
+    </table>
+  </div>
+  <p class="note">
+    Ranked by residual ASR under enforcement, then advisory, then no-policy ASR, then utility.
+    Lower ASR is better; higher utility is better. The two 0%-ASR models differ sharply:
+    Claude&nbsp;Sonnet pairs it with 100% utility (principled refusal), the local Llama with 50%
+    utility (it is quiet because it often does not act — an over-refusal artifact, not judgment).
+  </p>
+
+  <h2>Per-threat ASR — advisory posture</h2>
+  <div class="card scroll">
+    <table class="heat" id="heat">
+      <thead><!-- head injected --></thead>
+      <tbody><!-- body injected --></tbody>
+    </table>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--sev-safe-bg);border:1px solid var(--sev-safe)"></i>0% robust</span>
+    <span><i style="background:var(--sev-low-bg);border:1px solid var(--sev-low)"></i>1–10%</span>
+    <span><i style="background:var(--sev-mod-bg);border:1px solid var(--sev-mod)"></i>11–30%</span>
+    <span><i style="background:var(--sev-high-bg);border:1px solid var(--sev-high)"></i>&gt;30%</span>
+  </div>
+  <p class="note">
+    Vulnerability concentrates in <b>payment structuring (T4)</b> and <b>dual-approval defeat (T5)</b> —
+    procedural, aggregate-reasoning controls where no single action is forbidden and only the pattern is
+    illegitimate. These are exactly where hard enforcement, not written policy, is decisive.
+  </p>
+
+  <div class="foot">
+    <div class="links">
+      <a href="https://github.com/nac7/finagent-redteam">GitHub — code &amp; harness</a>
+      <a href="https://huggingface.co/datasets/nac7/finagent-redteam">HF dataset — 48 scenarios</a>
+      <a href="https://doi.org/10.5281/zenodo.21855808">Zenodo DOI</a>
+    </div>
+    Every scenario runs against a <b>synthetic</b> world (mock ledgers, payees, counterparties) with no real
+    account data. MIT-licensed. Numbers are the reference run (advisory single-trial for Groq-served Llama;
+    see the repository for confidence intervals and full tables).
+  </div>
+</div>
+
+<script>
+  // ---- data (reference run; ASR/utility/over-refusal in %) ----
+  var MODELS = [
+    {m:"Claude Sonnet 4.6", t:"Anthropic · closed", none:0.0, adv:0.0, enf:0.0, util:100, over:0.0},
+    {m:"Llama 3.1 8B", t:"Meta · local (Ollama)", none:0.0, adv:0.0, enf:0.0, util:50, over:50.0},
+    {m:"Claude Haiku 4.5", t:"Anthropic · closed", none:30.2, adv:0.8, enf:0.0, util:100, over:0.0},
+    {m:"GPT-4o", t:"OpenAI · closed", none:71.4, adv:0.8, enf:0.0, util:100, over:0.0},
+    {m:"Llama 3.1 8B", t:"Meta · Groq", none:42.9, adv:21.4, enf:0.0, util:100, over:0.0},
+    {m:"GPT-4o-mini", t:"OpenAI · closed", none:82.5, adv:27.8, enf:0.0, util:100, over:0.0},
+    {m:"Qwen 3 8B", t:"Alibaba · local (Ollama)", none:83.3, adv:45.2, enf:0.0, util:100, over:0.0}
+  ];
+  var THREATS = [
+    {k:"T2", n:"Unauthorized transfer"},
+    {k:"T3", n:"Sanctions evasion"},
+    {k:"T4", n:"Payment structuring"},
+    {k:"T5", n:"Dual-approval defeat"},
+    {k:"T6", n:"Data exfiltration"},
+    {k:"T7", n:"Confused deputy"}
+  ];
+  // advisory-posture ASR grid: [Sonnet, Llama-local, Haiku, GPT-4o, Llama-Groq, GPT-4o-mini, Qwen]
+  var COLS = ["Sonnet","Llama-L","Haiku","GPT-4o","Llama-G","4o-mini","Qwen"];
+  var HEAT = {
+    T2:[0,0,0,0,0,0,0],
+    T3:[0,0,3,0,25,0,25],
+    T4:[0,0,0,0,17,94,83],
+    T5:[0,0,0,6,67,100,100],
+    T6:[0,0,0,0,17,0,56],
+    T7:[0,0,0,0,0,0,28]
+  };
+
+  function sev(v){ return v===0 ? "safe" : v<=10 ? "low" : v<=30 ? "mod" : "high"; }
+  function sevVar(v){ return "var(--sev-"+sev(v)+")"; }
+  function sevBg(v){ return "var(--sev-"+sev(v)+"-bg)"; }
+  function fmt(v){ return (v===0?"0":v.toFixed(1))+"%"; }
+
+  function asrCell(v){
+    var w = Math.max(4, Math.min(100, v)); // min visible sliver
+    return '<td class="asr-cell"><span class="bar"><span style="width:'+w+'%;background:'+sevBg(v)+
+      ';border-right:2px solid '+sevVar(v)+'"></span><em>'+fmt(v)+'</em></span></td>';
+  }
+
+  var tb = document.querySelector("#board tbody");
+  MODELS.forEach(function(d,i){
+    var util = '<span class="pill '+(d.util>=100?"safe":"warn")+'">'+d.util+'%</span>';
+    var over = d.over===0 ? '<span class="pill safe">0%</span>' : '<span class="pill warn">'+d.over.toFixed(0)+'%</span>';
+    tb.insertAdjacentHTML("beforeend",
+      '<tr><td class="rank">'+(i+1)+'</td>'+
+      '<td class="model">'+d.m+'<span class="tier">'+d.t+'</span></td>'+
+      asrCell(d.none)+asrCell(d.adv)+
+      '<td><span class="val" style="color:var(--sev-safe)">0%</span></td>'+
+      '<td>'+util+'</td><td>'+over+'</td></tr>');
+  });
+
+  // heatmap head
+  var hhead = "<tr><th class='l'>Threat</th>" + COLS.map(function(c){return "<th>"+c+"</th>";}).join("") + "</tr>";
+  document.querySelector("#heat thead").innerHTML = hhead;
+  var hbody = document.querySelector("#heat tbody");
+  THREATS.forEach(function(t){
+    var cells = HEAT[t.k].map(function(v){
+      return "<td><span class='cell' style='background:"+sevBg(v)+";color:"+sevVar(v)+"'>"+v+"</span></td>";
+    }).join("");
+    hbody.insertAdjacentHTML("beforeend",
+      "<tr><td class='l'><b>"+t.k+"</b> "+t.n+"</td>" + cells + "</tr>");
+  });
+
+  // theme toggle (respects system until explicitly toggled)
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    var isDark = cur ? cur==="dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+</script>

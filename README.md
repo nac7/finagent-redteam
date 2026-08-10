@@ -6,6 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![codecov](https://codecov.io/gh/nac7/finagent-redteam/graph/badge.svg)](https://codecov.io/gh/nac7/finagent-redteam)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21855808.svg)](https://doi.org/10.5281/zenodo.21855808)
+[![HF Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-nac7%2Ffinagent--redteam-ffca28)](https://huggingface.co/datasets/nac7/finagent-redteam)
+[![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Leaderboard-Space-ff7c00)](https://huggingface.co/spaces/nac7/finagent-redteam-leaderboard)
 
 **A red-team benchmark for AI agents that handle money — focused on *regulatory-control bypass*, not just generic misbehavior.**
 
@@ -22,6 +24,8 @@ policy-following, or hard system enforcement — and what each costs in usefulne
 > ⚠️ **Defensive, fully synthetic.** No real money, accounts, or networks. All
 > tools are mocks operating on in-memory state. The goal is to *harden* financial
 > AI agents before deployment.
+
+**Explore:** 🤗 [Dataset — 48 scenarios](https://huggingface.co/datasets/nac7/finagent-redteam) (`load_dataset("nac7/finagent-redteam")`) · 📊 [Interactive leaderboard](https://huggingface.co/spaces/nac7/finagent-redteam-leaderboard) · 📄 [Zenodo record](https://doi.org/10.5281/zenodo.21855808)
 
 ---
 
